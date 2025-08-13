@@ -21,26 +21,32 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Safe Area Platzhalter */
+.safe-area {
+  background: white;
+}
+
 /* ================================
    Theme-Farben
    ================================ */
 :root {
-  --bg-color: #f7f7f7;
+  --bg-color: #f9f9f9;
   --text-color: #222;
   --panel-bg: #fff;
   --panel-border: #ddd;
   --accent: linear-gradient(90deg, #f1c40f, #2ecc71);
 }
 
-.theme-standard { --accent: linear-gradient(90deg, #f1c40f, #2ecc71); }
-.theme-warm     { --accent: linear-gradient(90deg, #e74c3c, #e67e22); }
-.theme-kalt     { --accent: linear-gradient(90deg, #3498db, #5dade2); }
-.theme-fancy    { --accent: linear-gradient(90deg, #27ae60, #16a085); }
-.theme-special  { --accent: linear-gradient(90deg, #8e44ad, #f1c40f); }
-.theme-girly    { --accent: linear-gradient(90deg, #ff69b4, #8e44ad); }
+/* Mehr Kontrast in allen Themes */
+.theme-standard { --accent: linear-gradient(90deg, #ffdc00, #27ae60); }
+.theme-warm     { --accent: linear-gradient(90deg, #ff4e33, #e67e22); }
+.theme-kalt     { --accent: linear-gradient(90deg, #2980b9, #3498db); }
+.theme-fancy    { --accent: linear-gradient(90deg, #1abc9c, #16a085); }
+.theme-special  { --accent: linear-gradient(90deg, #8e44ad, #f39c12); }
+.theme-girly    { --accent: linear-gradient(90deg, #ff4fa3, #a64ca6); }
 
 /* ================================
-   Panels & Container
+   Panels & Header
    ================================ */
 .panel {
   background: var(--panel-bg);
@@ -49,6 +55,7 @@ body {
   padding: 16px;
   margin: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: background 0.3s ease;
 }
 
 .header-panel {
@@ -115,15 +122,21 @@ input, select {
   border-radius: 8px;
   border: none;
   cursor: pointer;
+  transition: background-position 0.3s ease, transform 0.1s ease;
 }
 
 .btn-primary {
   background: var(--accent);
   color: white;
   background-size: 200% auto;
-  transition: background-position 0.3s;
 }
-.btn-primary:hover { background-position: right center; }
+.btn-primary:hover {
+  background-position: right center;
+  transform: scale(1.02);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
 
 /* ================================
    Listen & Chips
@@ -161,15 +174,15 @@ input, select {
 }
 
 /* Direkte Farbanzeige */
-.theme-swatch-standard { background: linear-gradient(90deg, #f1c40f, #2ecc71); }
-.theme-swatch-warm     { background: linear-gradient(90deg, #e74c3c, #e67e22); }
-.theme-swatch-kalt     { background: linear-gradient(90deg, #3498db, #5dade2); }
-.theme-swatch-fancy    { background: linear-gradient(90deg, #27ae60, #16a085); }
-.theme-swatch-special  { background: linear-gradient(90deg, #8e44ad, #f1c40f); }
-.theme-swatch-girly    { background: linear-gradient(90deg, #ff69b4, #8e44ad); }
+.theme-swatch-standard { background: linear-gradient(90deg, #ffdc00, #27ae60); }
+.theme-swatch-warm     { background: linear-gradient(90deg, #ff4e33, #e67e22); }
+.theme-swatch-kalt     { background: linear-gradient(90deg, #2980b9, #3498db); }
+.theme-swatch-fancy    { background: linear-gradient(90deg, #1abc9c, #16a085); }
+.theme-swatch-special  { background: linear-gradient(90deg, #8e44ad, #f39c12); }
+.theme-swatch-girly    { background: linear-gradient(90deg, #ff4fa3, #a64ca6); }
 
 /* ================================
-   Export Buttons
+   Export Grid
    ================================ */
 .export-grid {
   display: flex;
@@ -203,9 +216,9 @@ input, select {
 .modal-content h3 { margin-bottom: 10px; }
 
 /* ================================
-   Hamburger-Menü
+   Hamburger Menü
    ================================ */
-.menu-button {
+.hamburger-btn {
   position: fixed;
   top: env(safe-area-inset-top);
   left: 10px;
@@ -217,26 +230,6 @@ input, select {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.menu-icon {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: var(--text-color);
-  position: relative;
-}
-.menu-icon::before,
-.menu-icon::after {
-  content: "";
-  position: absolute;
-  width: 20px;
-  height: 2px;
-  background: var(--text-color);
-  left: 0;
-}
-.menu-icon::before { top: -6px; }
-.menu-icon::after { top: 6px; }
-
-/* Overlay */
 .menu-overlay {
   position: fixed;
   inset: 0;
@@ -251,7 +244,7 @@ input, select {
   background: rgba(0,0,0,0.4);
 }
 
-.menu-sheet {
+.menu-content {
   position: absolute;
   top: 0;
   left: 0;
@@ -263,19 +256,11 @@ input, select {
   flex-direction: column;
 }
 
-.menu-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.menu-list {
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-  gap: 8px;
+.close-menu {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
 }
 
 .menu-item {
@@ -286,21 +271,11 @@ input, select {
   border-radius: 8px;
   text-align: left;
   cursor: pointer;
+  margin: 5px 10px;
+  transition: background-position 0.3s ease;
 }
-
-.menu-close {
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-}
-
-/* ================================
-   Screenreader-Only
-   ================================ */
-.sr-only {
-  position: absolute;
-  left: -9999px;
+.menu-item:hover {
+  background-position: right center;
 }
 
 /* ================================
