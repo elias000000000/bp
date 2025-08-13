@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <!-- Meta & Mobile Safe Area -->
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Budget Planer</title>
+
+  <!-- Schriftart: Nunito -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Chart.js (Diagramme) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- docx (Word-Export) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.0.1/docx.min.js"
+          integrity="sha512-5G5YcDq3y9Fv8D3xNf9p0H0v8C5mQbC0j1x7z1L4v2nXh8xq4h6w3pUj+8W2n5Z9C2mYbq6xwE3cc7qXk+oO4A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- App-Logik -->
+  <script defer src="app.js"></script>
+</head>
+<body class="theme-standard">
+  <!-- Feste Bottom-Navigation (für Daumen erreichbar) -->
+  <nav class="bottom-nav" aria-label="Hauptnavigation">
+    <button class="bottom-nav-btn active" data-tab="budget" aria-controls="tab-budget">💰 Budget</button>
+    <button class="bottom-nav-btn" data-tab="list" aria-controls="tab-list">📜 Auflistung</button>
+    <button class="bottom-nav-btn" data-tab="history" aria-controls="tab-history">📅 Verlauf</button>
+    <button class="bottom-nav-btn" data-tab="saved" aria-controls="tab-saved">💎 Gespart</button>
+    <button class="bottom-nav-btn" data-tab="categories" aria-controls="tab-categories">📂 Kategorien</button>
+    <button class="bottom-nav-btn" data-tab="settings" aria-controls="tab-settings">⚙️ Einstellungen</button>
+    <button class="bottom-nav-btn" data-tab="archive" aria-controls="tab-archive">📦 Archiv</button>
+  </nav>
+
+  <!-- Hauptinhalt mit Safe-Area-Polstern, damit nichts unter die Dynamic Island / Home-Bar rutscht -->
+  <main class="main-content" id="appRoot">
+    <!-- Kopfbereich mit Verlauf/Gradient und Zitat -->
+    <header class="panel header-panel" role="banner">
+      <div id="greeting" class="muted">Hallo –</div>
+      <h2 id="monthRange">
+        <span id="budgetWord" class="gradient-text">Budget</span>
+        <span>für&nbsp;<span id="monthText">–</span></span>
+      </h2>
+      <div id="currentDate" class="muted">–</div>
+
+      <!-- Zitat: Anführungszeichen werden farbig per CSS (Theme-Akzentfarbe) -->
+      <p id="quote" class="quote" aria-live="polite"></p>
+    </header>
+
+    <!-- TAB: Budget -->
+    <section id="tab-budget" class="tab active" role="region" aria-labelledby="nav-budget">
+      <div class="panel">
+        <label for="totalBudget" class="muted">Gesamtbudget (CHF)</label>
+        <div class="input-row">
+          <input id="totalBudget" type="number" inputmode="decimal" min="0" step="0.05" placeholder="0.00" />
+          <button id="saveBudget" class="btn btn-primary" type="button">Speichern</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <label for="txCategory" class="muted">Kategorie</label>
+        <select id="txCategory" aria-label="Kategorie auswählen"></select>
+
+        <label for="txDesc" class="muted">Beschreibung</label>
+        <input id="txDesc" type="text" maxlength="60" placeholder="z.B. Wocheneinkauf" />
+
+        <label for="txAmount" class="muted">Betrag (CHF)</label>
+        <input id="txAmount" type="number" inputmode="decimal" min="0" step="0.05" placeholder="0.00" />
+
+        <button id="addTx" class="btn btn-primary" type="button">Hinzufügen</button>
+      </div>
+
+      <div class="panel kpi-row">
+        <div class="kpi">
+          <div class="kpi-label">Ausgegeben</div>
+          <div id="spent" class="kpi-value">CHF 0.00</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Verbleibend</div>
+          <div id="remaining" class="kpi-value big">CHF 0.00</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: Auflistung -->
+    <section id="tab-list" class="tab" role="region" aria-labelledby="nav-list">
+      <div id="transactionList" class="panel list-panel" aria-live="polite"></div>
+    </section>
+
+    <!-- TAB: Verlauf (Diagramm + kompakte Liste) -->
+    <section id="tab-history" class="tab" role="region" aria-labelledby="nav-history">
+      <div class="panel">
+        <canvas id="expenseChart" width="400" height="320" aria-label="Ausgaben-Diagramm" role="img"></canvas>
+      </div>
+      <div id="historyList" class="panel list-panel"></div>
+    </section>
+
+    <!-- TAB: Gespart -->
+    <section id="tab-saved" class="tab" role="region" aria-labelledby="nav-saved">
+      <div class="panel">
+        <h3>Gespart in dieser Periode</h3>
+        <p><strong id="savedAmount">CHF 0.00</strong></p>
+        <small class="muted">Periode richtet sich nach deinem Zahltag.</small>
+      </div>
+    </section>
+
+    <!-- TAB: Kategorien -->
+    <section id="tab-categories" class="tab" role="region" aria-labelledby="nav-categories">
+      <div class="panel">
+        <h3>Kategorien verwalten</h3>
+        <div class="input-row">
+          <input id="newCategoryName" type="text" maxlength="24" placeholder="Neue Kategorie (z.B. Essen)" />
+          <button id="addCategory" class="btn btn-primary" type="button">Hinzufügen</button>
+        </div>
+        <div id="categoriesList" class="chips"></div>
+        <small class="muted">Tipp: Tippe auf eine Kategorie, um sie umzubenennen. Langer Druck: löschen.</small>
+      </div>
+    </section>
+
+    <!-- TAB: Einstellungen -->
+    <section id="tab-settings" class="tab" role="region" aria-labelledby="nav-settings">
+      <div class="panel">
+        <h3>Farbschema wählen</h3>
+        <div class="theme-grid">
+          <button class="theme-btn" data-theme-select="standard" type="button">Standard</button>
+          <button class="theme-btn" data-theme-select="warm" type="button">Warm</button>
+          <button class="theme-btn" data-theme-select="kalt" type="button">Kalt</button>
+          <button class="theme-btn" data-theme-select="fancy" type="button">Fancy</button>
+          <button class="theme-btn" data-theme-select="special" type="button">Special</button>
+          <button class="theme-btn" data-theme-select="girly" type="button">Girly</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Exporte</h3>
+        <div class="export-grid">
+          <button id="exportWord" class="btn btn-primary" type="button" title="Transaktionen als Word (.docx) mit Kategorien und Totals">Verlauf als Word</button>
+          <button id="exportCSV" class="btn btn-primary" type="button" title="Transaktionen als CSV-Datei">Verlauf als CSV</button>
+          <button id="exportChart" class="btn btn-primary" type="button" title="Aktuelles Diagramm als PNG-Bild speichern">Diagramm als PNG</button>
+        </div>
+        <small class="muted">Hinweis: Word/CSV exportieren die aktuelle Periode (vom eingestellten Zahltag bis zum nächsten).</small>
+      </div>
+
+      <div class="panel">
+        <h3>Zahltag</h3>
+        <div class="input-row">
+          <input id="paydaySelectSettings" type="number" min="1" max="28" step="1" placeholder="1–28" />
+          <button id="savePaydaySettings" class="btn btn-primary" type="button">Speichern</button>
+        </div>
+        <small class="muted">Am Zahltag wird die Periode automatisiert archiviert und Budget/Ausgaben werden zurückgesetzt.</small>
+      </div>
+    </section>
+
+    <!-- TAB: Archiv -->
+    <section id="tab-archive" class="tab" role="region" aria-labelledby="nav-archive">
+      <div id="archiveList" class="panel list-panel"></div>
+    </section>
+  </main>
+
+  <!-- Modals / Popups (Reihenfolge: Willkommen → Info → Kategorien-Hinweis → Zahltag) -->
+  <div id="welcomeModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="modal-content">
+      <h3 id="welcomeTitle">Willkommen!</h3>
+      <p>Wie heisst du?</p>
+      <input id="userName" type="text" maxlength="24" placeholder="Dein Name" />
+      <button id="saveName" class="btn btn-primary" type="button">Speichern</button>
+    </div>
+  </div>
+
+  <div id="infoModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+    <div class="modal-content">
+      <h3 id="infoTitle">Kurzinfo</h3>
+      <p>Ich helfe dir dabei, deine Ausgaben zu tracken, Kategorien zu ordnen und am Zahltag alles sauber zu archivieren. So behältst du den Überblick und sparst smarter.</p>
+      <button id="closeInfo" class="btn btn-primary" type="button">Weiter</button>
+    </div>
+  </div>
+
+  <div id="categoryInfoModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="catInfoTitle">
+    <div class="modal-content">
+      <h3 id="catInfoTitle">Bevor es losgeht</h3>
+      <p>Lege bitte zuerst deine eigenen Kategorien an. Danach kannst du im Reiter <strong>Budget</strong> Ausgaben hinzufügen.</p>
+      <button id="closeCategoryInfo" class="btn btn-primary" type="button">Weiter</button>
+    </div>
+  </div>
+
+  <div id="paydayModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="paydayTitle">
+    <div class="modal-content">
+      <h3 id="paydayTitle">Zahltag festlegen</h3>
+      <p>Bitte wähle deinen monatlichen Zahltag (1–28). An diesem Tag wird automatisch archiviert.</p>
+      <input id="paydaySelect" type="number" min="1" max="28" step="1" placeholder="z.B. 20" />
+      <button id="savePayday" class="btn btn-primary" type="button">Speichern</button>
+    </div>
+  </div>
+
+  <!-- Für Screenreader: Live-Regionen (kurze Statusmeldungen) -->
+  <div id="sr-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
