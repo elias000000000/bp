@@ -1,49 +1,55 @@
-/* Grundlayout */
+/* Basis */
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
-html, body {
+body {
   font-family: 'Nunito', sans-serif;
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--text);
-  height: 100%;
-  width: 100%;
-  -webkit-tap-highlight-color: transparent;
+  line-height: 1.5;
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
 }
 
 .safe-area {
-  background: white;
+  background-color: white;
 }
 
-/* Farbvariablen */
+/* Variablen für Themes */
 :root {
   --bg: #f9f9f9;
   --text: #333;
-  --panel-bg: #fff;
+  --accent: #6cbb3c;
+  --panel-bg: white;
   --panel-border: #ddd;
   --muted: #666;
   --danger: #d9534f;
 }
 
-/* Themes mit höherem Kontrast */
+/* Themes */
 body.theme-standard {
-  --accent: linear-gradient(90deg, #a8e063, #f2e96b);
+  --accent: linear-gradient(90deg, #b6e36e, #f2e96b);
 }
+
 body.theme-warm {
-  --accent: linear-gradient(90deg, #ff7e5f, #feb47b);
+  --accent: linear-gradient(90deg, #ff9966, #ff5e62);
 }
+
 body.theme-kalt {
   --accent: linear-gradient(90deg, #4facfe, #00f2fe);
 }
+
 body.theme-fancy {
-  --accent: linear-gradient(90deg, #50c9c3, #96deda);
+  --accent: linear-gradient(90deg, #7fffd4, #00ced1);
 }
+
 body.theme-special {
   --accent: linear-gradient(90deg, #a855f7, #fde047);
 }
+
 body.theme-girly {
   --accent: linear-gradient(90deg, #ff69b4, #8a2be2);
 }
@@ -59,25 +65,27 @@ body.theme-girly {
 }
 
 .panel:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+  background-color: #f0f0f0;
 }
 
-/* Header */
+/* Header Panel */
 .header-panel {
   text-align: center;
 }
+
 .header-panel h1 {
   font-size: 1.8rem;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
 }
+
 .header-panel h2 {
-  font-size: 1.1rem;
-  margin-bottom: 0.3rem;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
 }
+
 .quote {
   font-style: italic;
-  font-size: 0.9rem;
-  margin-top: 0.3rem;
+  margin-top: 0.5rem;
 }
 
 /* Buttons */
@@ -87,33 +95,34 @@ body.theme-girly {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  color: white;
   background: var(--accent);
+  color: white;
   transition: transform 0.2s ease, background 0.3s ease;
 }
+
 .btn:hover {
   transform: scale(1.05);
-  filter: brightness(1.05);
 }
+
 .btn-primary {
   background: var(--accent);
 }
 
-/* Inputs */
+/* Input */
 input, select {
   padding: 0.5rem;
-  border-radius: 8px;
   border: 1px solid #ccc;
+  border-radius: 8px;
   width: 100%;
-  font-size: 1rem;
 }
+
 .input-row {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
 }
 
-/* Listen */
+/* Lists */
 .list-panel {
   display: flex;
   flex-direction: column;
@@ -127,52 +136,81 @@ input, select {
   gap: 0.5rem;
 }
 
-/* Theme Grid */
+/* Theme grid */
 .theme-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
 }
+
 .theme-btn {
   height: 40px;
   border: none;
   border-radius: 8px;
+  color: white;
   font-weight: bold;
   cursor: pointer;
 }
-.theme-swatch-standard { background: linear-gradient(90deg, #a8e063, #f2e96b); color: #333; }
-.theme-swatch-warm { background: linear-gradient(90deg, #ff7e5f, #feb47b); color: white; }
-.theme-swatch-kalt { background: linear-gradient(90deg, #4facfe, #00f2fe); color: white; }
-.theme-swatch-fancy { background: linear-gradient(90deg, #50c9c3, #96deda); color: white; }
-.theme-swatch-special { background: linear-gradient(90deg, #a855f7, #fde047); color: white; }
-.theme-swatch-girly { background: linear-gradient(90deg, #ff69b4, #8a2be2); color: white; }
 
-/* Hamburger Menü */
+/* Theme swatches */
+.theme-swatch-standard { background: linear-gradient(90deg, #b6e36e, #f2e96b); }
+.theme-swatch-warm { background: linear-gradient(90deg, #ff9966, #ff5e62); }
+.theme-swatch-kalt { background: linear-gradient(90deg, #4facfe, #00f2fe); }
+.theme-swatch-fancy { background: linear-gradient(90deg, #7fffd4, #00ced1); }
+.theme-swatch-special { background: linear-gradient(90deg, #a855f7, #fde047); }
+.theme-swatch-girly { background: linear-gradient(90deg, #ff69b4, #8a2be2); }
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal[aria-hidden="false"] {
+  display: flex;
+}
+
+.modal-content {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  max-width: 90%;
+}
+
+/* Hamburger Menu */
 .hamburger-btn {
   position: fixed;
-  top: calc(env(safe-area-inset-top) + 0.5rem);
-  left: 0.5rem;
+  top: env(safe-area-inset-top);
+  left: 1rem;
   background: var(--accent);
   border: none;
   border-radius: 8px;
-  padding: 0.4rem 0.6rem;
+  padding: 0.5rem;
   z-index: 1001;
-  font-size: 1.2rem;
 }
+
 .menu-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0,0,0,0.6);
   display: none;
   z-index: 1000;
 }
+
 .menu-overlay[aria-hidden="false"] {
   display: block;
 }
+
 .menu-backdrop {
   position: absolute;
   inset: 0;
 }
+
 .menu-content {
   background: white;
   position: absolute;
@@ -186,6 +224,7 @@ input, select {
   flex-direction: column;
   gap: 0.5rem;
 }
+
 .menu-item {
   background: var(--accent);
   border: none;
@@ -196,6 +235,7 @@ input, select {
   text-align: left;
   cursor: pointer;
 }
+
 .close-menu {
   align-self: flex-end;
   background: transparent;
@@ -203,31 +243,17 @@ input, select {
   font-size: 1.2rem;
 }
 
-/* Modal */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 1002;
-}
-.modal[aria-hidden="false"] {
-  display: flex;
-}
-.modal-content {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  max-width: 90%;
+/* Textfarben */
+.muted {
+  color: var(--muted);
 }
 
-/* Extra */
-.muted { color: var(--muted); }
-.big { font-size: 1.2rem; font-weight: bold; }
-.red-alert { color: var(--danger); font-weight: bold; }
+.big {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
 
-/* Tabs nur eine sichtbar */
-.tab { display: none; }
-.tab.active { display: block; }
+.red-alert {
+  color: var(--danger);
+  font-weight: bold;
+}
