@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <!-- Meta & Mobile Safe Area -->
   <meta charset="UTF-8" />
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Budget Planer</title>
 
-  <!-- Schriftart: Nunito -->
+  <!-- Schriftart -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800;900&display=swap" rel="stylesheet" />
 
-  <!-- Stylesheet -->
+  <!-- Styles -->
   <link rel="stylesheet" href="styles.css" />
 
   <!-- Chart.js (Diagramme) -->
@@ -18,41 +17,58 @@
 
   <!-- docx (Word-Export) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.0.1/docx.min.js"
-          integrity="sha512-5G5YcDq3y9Fv8D3xNf9p0H0v8C5mQbC0j1x7z1L4v2nXh8xq4h6w3pUj+8W2n5Z9C2mYbq6xwE3cc7qXk+oO4A=="
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-  <!-- App-Logik -->
+  <!-- App -->
   <script defer src="app.js"></script>
 </head>
 <body class="theme-standard">
-  <!-- Feste Bottom-Navigation (für Daumen erreichbar) -->
-  <nav class="bottom-nav" aria-label="Hauptnavigation">
-    <button class="bottom-nav-btn active" data-tab="budget" aria-controls="tab-budget">💰 Budget</button>
-    <button class="bottom-nav-btn" data-tab="list" aria-controls="tab-list">📜 Auflistung</button>
-    <button class="bottom-nav-btn" data-tab="history" aria-controls="tab-history">📅 Verlauf</button>
-    <button class="bottom-nav-btn" data-tab="saved" aria-controls="tab-saved">💎 Gespart</button>
-    <button class="bottom-nav-btn" data-tab="categories" aria-controls="tab-categories">📂 Kategorien</button>
-    <button class="bottom-nav-btn" data-tab="settings" aria-controls="tab-settings">⚙️ Einstellungen</button>
-    <button class="bottom-nav-btn" data-tab="archive" aria-controls="tab-archive">📦 Archiv</button>
-  </nav>
+  <!-- Hamburger-Menü-Button (oben, sicher mit Dynamic Island) -->
+  <button id="menuButton"
+          class="menu-button"
+          aria-label="Menü öffnen"
+          aria-controls="menuOverlay"
+          aria-expanded="false">
+    <span class="menu-icon" aria-hidden="true"></span>
+  </button>
 
-  <!-- Hauptinhalt mit Safe-Area-Polstern, damit nichts unter die Dynamic Island / Home-Bar rutscht -->
-  <main class="main-content" id="appRoot">
-    <!-- Kopfbereich mit Verlauf/Gradient und Zitat -->
-    <header class="panel header-panel" role="banner">
-      <div id="greeting" class="muted">Hallo –</div>
-      <h2 id="monthRange">
-        <span id="budgetWord" class="gradient-text">Budget</span>
-        <span>für&nbsp;<span id="monthText">–</span></span>
-      </h2>
-      <div id="currentDate" class="muted">–</div>
+  <!-- Vollbild-Menü-Overlay mit vertikalen Tabs -->
+  <aside id="menuOverlay" class="menu-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="menu-sheet" role="menu" aria-label="Hauptmenü">
+      <header class="menu-header">
+        <h3>Menü</h3>
+        <button id="closeMenu" class="menu-close" aria-label="Menü schliessen">×</button>
+      </header>
 
-      <!-- Zitat: Anführungszeichen werden farbig per CSS (Theme-Akzentfarbe) -->
-      <p id="quote" class="quote" aria-live="polite"></p>
-    </header>
+      <nav class="menu-list">
+        <button class="menu-item" data-tab="budget" role="menuitem" aria-controls="tab-budget">Budget</button>
+        <button class="menu-item" data-tab="list" role="menuitem" aria-controls="tab-list">Auflistung</button>
+        <button class="menu-item" data-tab="history" role="menuitem" aria-controls="tab-history">Verlauf</button>
+        <button class="menu-item" data-tab="saved" role="menuitem" aria-controls="tab-saved">Gespart</button>
+        <button class="menu-item" data-tab="categories" role="menuitem" aria-controls="tab-categories">Kategorien</button>
+        <button class="menu-item" data-tab="settings" role="menuitem" aria-controls="tab-settings">Einstellungen</button>
+        <button class="menu-item" data-tab="archive" role="menuitem" aria-controls="tab-archive">Archiv</button>
+      </nav>
+    </div>
+  </aside>
 
+  <!-- Seitenkopf mit Gradient und Zitat -->
+  <header class="panel header-panel" role="banner">
+    <div id="greeting" class="muted">Hallo –</div>
+
+    <h2 id="monthRange">
+      <span id="budgetWord" class="gradient-text">Dein Budget</span>
+      <span>für&nbsp;<span id="monthText">–</span></span>
+    </h2>
+
+    <div id="currentDate" class="muted">–</div>
+    <p id="quote" class="quote" aria-live="polite"></p>
+  </header>
+
+  <!-- Hauptinhalt -->
+  <main class="main-content" id="appRoot" role="main">
     <!-- TAB: Budget -->
-    <section id="tab-budget" class="tab active" role="region" aria-labelledby="nav-budget">
+    <section id="tab-budget" class="tab active" role="region" aria-label="Budget">
       <div class="panel">
         <label for="totalBudget" class="muted">Gesamtbudget (CHF)</label>
         <div class="input-row">
@@ -87,12 +103,12 @@
     </section>
 
     <!-- TAB: Auflistung -->
-    <section id="tab-list" class="tab" role="region" aria-labelledby="nav-list">
+    <section id="tab-list" class="tab" role="region" aria-label="Auflistung">
       <div id="transactionList" class="panel list-panel" aria-live="polite"></div>
     </section>
 
     <!-- TAB: Verlauf (Diagramm + kompakte Liste) -->
-    <section id="tab-history" class="tab" role="region" aria-labelledby="nav-history">
+    <section id="tab-history" class="tab" role="region" aria-label="Verlauf">
       <div class="panel">
         <canvas id="expenseChart" width="400" height="320" aria-label="Ausgaben-Diagramm" role="img"></canvas>
       </div>
@@ -100,7 +116,7 @@
     </section>
 
     <!-- TAB: Gespart -->
-    <section id="tab-saved" class="tab" role="region" aria-labelledby="nav-saved">
+    <section id="tab-saved" class="tab" role="region" aria-label="Gespart">
       <div class="panel">
         <h3>Gespart in dieser Periode</h3>
         <p><strong id="savedAmount">CHF 0.00</strong></p>
@@ -109,7 +125,7 @@
     </section>
 
     <!-- TAB: Kategorien -->
-    <section id="tab-categories" class="tab" role="region" aria-labelledby="nav-categories">
+    <section id="tab-categories" class="tab" role="region" aria-label="Kategorien">
       <div class="panel">
         <h3>Kategorien verwalten</h3>
         <div class="input-row">
@@ -122,16 +138,16 @@
     </section>
 
     <!-- TAB: Einstellungen -->
-    <section id="tab-settings" class="tab" role="region" aria-labelledby="nav-settings">
+    <section id="tab-settings" class="tab" role="region" aria-label="Einstellungen">
       <div class="panel">
         <h3>Farbschema wählen</h3>
         <div class="theme-grid">
-          <button class="theme-btn" data-theme-select="standard" type="button">Standard</button>
-          <button class="theme-btn" data-theme-select="warm" type="button">Warm</button>
-          <button class="theme-btn" data-theme-select="kalt" type="button">Kalt</button>
-          <button class="theme-btn" data-theme-select="fancy" type="button">Fancy</button>
-          <button class="theme-btn" data-theme-select="special" type="button">Special</button>
-          <button class="theme-btn" data-theme-select="girly" type="button">Girly</button>
+          <button class="theme-btn" data-theme-select="standard" type="button" title="Grün/gelb">Standard</button>
+          <button class="theme-btn" data-theme-select="warm" type="button" title="Rot/orange">Warm</button>
+          <button class="theme-btn" data-theme-select="kalt" type="button" title="Blau/hellblau">Kalt</button>
+          <button class="theme-btn" data-theme-select="fancy" type="button" title="Sättigtes Mint/Türkis">Fancy</button>
+          <button class="theme-btn" data-theme-select="special" type="button" title="Violett/gelb">Special</button>
+          <button class="theme-btn" data-theme-select="girly" type="button" title="Pink/violett">Girly</button>
         </div>
       </div>
 
@@ -156,12 +172,12 @@
     </section>
 
     <!-- TAB: Archiv -->
-    <section id="tab-archive" class="tab" role="region" aria-labelledby="nav-archive">
+    <section id="tab-archive" class="tab" role="region" aria-label="Archiv">
       <div id="archiveList" class="panel list-panel"></div>
     </section>
   </main>
 
-  <!-- Modals / Popups (Reihenfolge: Willkommen → Info → Kategorien-Hinweis → Zahltag) -->
+  <!-- Popups (Willkommen → Info → Kategorien-Hinweis → Zahltag) -->
   <div id="welcomeModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
     <div class="modal-content">
       <h3 id="welcomeTitle">Willkommen!</h3>
@@ -196,7 +212,7 @@
     </div>
   </div>
 
-  <!-- Für Screenreader: Live-Regionen (kurze Statusmeldungen) -->
+  <!-- Live-Region für kurze Statusmeldungen -->
   <div id="sr-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
