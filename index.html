@@ -1,185 +1,161 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Dein Budget</title>
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <link href="styles.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.0.1/docx.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.1/docx.min.js"></script>
 </head>
 <body class="theme-standard">
 
-  <!-- Safe Area Top Platzhalter -->
-  <div style="height: env(safe-area-inset-top); background: white;"></div>
+  <!-- Safe area for Dynamic Island -->
+  <div class="safe-area" style="height: env(safe-area-inset-top);"></div>
 
-  <!-- Header -->
-  <header class="header-panel">
-    <h1 id="greeting" class="gradient-text">Hallo</h1>
+  <!-- Hamburger Menü Button -->
+  <button id="menuButton" class="hamburger-btn">☰</button>
+
+  <!-- Overlay Menü -->
+  <div id="menuOverlay" class="menu-overlay" aria-hidden="true">
+    <div id="menuBackdrop" class="menu-backdrop"></div>
+    <div class="menu-content">
+      <button id="closeMenu" class="close-menu">✕</button>
+      <button class="menu-item" data-tab="budget">Budget</button>
+      <button class="menu-item" data-tab="listing">Auflistung</button>
+      <button class="menu-item" data-tab="history">Verlauf</button>
+      <button class="menu-item" data-tab="categories">Kategorien</button>
+      <button class="menu-item" data-tab="archive">Archiv</button>
+      <button class="menu-item" data-tab="settings">Einstellungen</button>
+    </div>
+  </div>
+
+  <!-- Header Panel -->
+  <header class="panel header-panel">
+    <h1 id="greeting">Hallo</h1>
     <h2>Dein Budget für <span id="monthText"></span></h2>
-    <div id="currentDate" class="muted"></div>
-    <div id="quote" class="quote"></div>
+    <p id="currentDate" class="muted"></p>
+    <p id="quote" class="quote"></p>
   </header>
 
   <!-- Tabs -->
   <main>
     <!-- Budget Tab -->
-    <section class="tab active" id="tab-budget">
+    <section id="tab-budget" class="tab active">
       <div class="panel">
-        <h3>Gesamtbudget festlegen</h3>
+        <label>Gesamtbudget festlegen (CHF):</label>
         <div class="input-row">
-          <input type="number" id="totalBudget" placeholder="CHF">
+          <input type="number" id="totalBudget" placeholder="z.B. 2000" />
           <button id="saveBudget" class="btn btn-primary">Speichern</button>
         </div>
       </div>
-
-      <div class="panel kpi-row">
-        <div>
-          <div class="kpi-label">Ausgegeben</div>
-          <div id="spent" class="kpi-value">CHF 0.00</div>
-        </div>
-        <div>
-          <div class="kpi-label">Verfügbar</div>
-          <div id="remaining" class="kpi-value">CHF 0.00</div>
-        </div>
-      </div>
-
       <div class="panel">
-        <h3>Ausgabe hinzufügen</h3>
+        <p>Ausgegeben: <span id="spent">CHF 0.00</span></p>
+        <p>Verfügbar: <span id="remaining" class="big">CHF 0.00</span></p>
+      </div>
+      <div class="panel">
+        <h3>Neue Ausgabe hinzufügen</h3>
         <div class="input-row">
           <select id="txCategory"></select>
+          <input type="text" id="txDesc" placeholder="Beschreibung" />
+          <input type="number" id="txAmount" placeholder="Betrag" />
+          <button id="addTx" class="btn btn-primary">+</button>
         </div>
-        <div class="input-row">
-          <input type="text" id="txDesc" placeholder="Beschreibung">
-        </div>
-        <div class="input-row">
-          <input type="number" id="txAmount" placeholder="CHF">
-        </div>
-        <button id="addTx" class="btn btn-primary">Hinzufügen</button>
       </div>
     </section>
 
     <!-- Auflistung Tab (vorher Verlauf) -->
-    <section class="tab" id="tab-list">
+    <section id="tab-listing" class="tab">
       <div class="panel">
-        <h3>Verlauf</h3>
+        <h3>Auflistung</h3>
         <div id="historyList" class="list-panel"></div>
-        <div class="export-grid">
-          <button id="exportCSV" class="btn btn-primary">Export als CSV</button>
-          <button id="exportWord" class="btn btn-primary">Export als Word</button>
-        </div>
       </div>
     </section>
 
     <!-- Verlauf Tab (vorher Auflistung) -->
-    <section class="tab" id="tab-history">
+    <section id="tab-history" class="tab">
       <div class="panel">
-        <h3>Auflistung</h3>
+        <h3>Verlauf</h3>
         <div id="transactionList" class="list-panel"></div>
       </div>
     </section>
 
-    <!-- Archiv Tab -->
-    <section class="tab" id="tab-archive">
+    <!-- Kategorien -->
+    <section id="tab-categories" class="tab">
+      <div class="panel">
+        <h3>Kategorien</h3>
+        <div class="chips" id="categoriesList"></div>
+        <div class="input-row">
+          <input type="text" id="newCategoryName" placeholder="Neue Kategorie" />
+          <button id="addCategory" class="btn btn-primary">+</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Archiv -->
+    <section id="tab-archive" class="tab">
       <div class="panel">
         <h3>Archiv</h3>
         <div id="archiveList" class="list-panel"></div>
       </div>
     </section>
 
-    <!-- Gespart Tab -->
-    <section class="tab" id="tab-saved">
-      <div class="panel">
-        <h3>Gespart</h3>
-        <div id="savedAmount" class="big">CHF 0.00</div>
-      </div>
-    </section>
-
-    <!-- Kategorien Tab -->
-    <section class="tab" id="tab-categories">
-      <div class="panel">
-        <h3>Kategorien verwalten</h3>
-        <div class="input-row">
-          <input type="text" id="newCategoryName" placeholder="Neue Kategorie">
-          <button id="addCategory" class="btn btn-primary">Hinzufügen</button>
-        </div>
-        <div id="categoriesList" class="chips"></div>
-      </div>
-    </section>
-
-    <!-- Einstellungen Tab -->
-    <section class="tab" id="tab-settings">
+    <!-- Einstellungen -->
+    <section id="tab-settings" class="tab">
       <div class="panel">
         <h3>Farbschema wählen</h3>
         <div class="theme-grid">
-          <button class="theme-btn" data-theme-select="standard" style="background: linear-gradient(90deg, #f1c40f, #2ecc71);">Standard</button>
-          <button class="theme-btn" data-theme-select="warm" style="background: linear-gradient(90deg, #e74c3c, #e67e22);">Warm</button>
-          <button class="theme-btn" data-theme-select="kalt" style="background: linear-gradient(90deg, #3498db, #5dade2);">Kalt</button>
-          <button class="theme-btn" data-theme-select="fancy" style="background: linear-gradient(90deg, #2ecc71, #1abc9c);">Fancy</button>
-          <button class="theme-btn" data-theme-select="special" style="background: linear-gradient(90deg, #8e44ad, #f1c40f);">Special</button>
-          <button class="theme-btn" data-theme-select="girly" style="background: linear-gradient(90deg, #ff69b4, #8e44ad);">Girly</button>
+          <button class="theme-btn theme-swatch-standard" data-theme-select="standard">Standard</button>
+          <button class="theme-btn theme-swatch-warm" data-theme-select="warm">Warm</button>
+          <button class="theme-btn theme-swatch-kalt" data-theme-select="kalt">Kalt</button>
+          <button class="theme-btn theme-swatch-fancy" data-theme-select="fancy">Fancy</button>
+          <button class="theme-btn theme-swatch-special" data-theme-select="special">Special</button>
+          <button class="theme-btn theme-swatch-girly" data-theme-select="girly">Girly</button>
         </div>
       </div>
       <div class="panel">
-        <h3>Diagramm Export</h3>
-        <button id="exportChart" class="btn btn-primary">Diagramm als PNG</button>
+        <h3>Export</h3>
+        <div class="export-grid">
+          <button id="exportCSV" class="btn btn-primary">Auflistung als CSV</button>
+          <button id="exportWord" class="btn btn-primary">Auflistung als Word</button>
+          <button id="exportChart" class="btn btn-primary">Diagramm als PNG</button>
+        </div>
       </div>
     </section>
   </main>
 
-  <!-- Hamburger Menü -->
-  <button id="menuButton" class="hamburger-btn" aria-label="Menü öffnen" aria-controls="menuOverlay" aria-expanded="false">☰</button>
-  <div id="menuOverlay" class="menu-overlay" aria-hidden="true">
-    <div id="menuBackdrop" class="menu-backdrop"></div>
-    <div class="menu-content">
-      <button id="closeMenu" class="close-menu">×</button>
-      <button class="menu-item" data-tab="budget">Budget</button>
-      <button class="menu-item" data-tab="list">Verlauf</button>
-      <button class="menu-item" data-tab="history">Auflistung</button>
-      <button class="menu-item" data-tab="archive">Archiv</button>
-      <button class="menu-item" data-tab="saved">Gespart</button>
-      <button class="menu-item" data-tab="categories">Kategorien</button>
-      <button class="menu-item" data-tab="settings">Einstellungen</button>
-    </div>
-  </div>
-
-  <!-- Safe Area Bottom Platzhalter -->
-  <div style="height: env(safe-area-inset-bottom); background: white;"></div>
-
-  <!-- Popups -->
-  <div class="modal" id="welcomeModal" aria-hidden="true">
+  <!-- Modals -->
+  <div id="welcomeModal" class="modal" aria-hidden="true">
     <div class="modal-content">
-      <h3>Willkommen</h3>
+      <h3>Willkommen!</h3>
       <p>Wie heisst du?</p>
-      <input type="text" id="userName">
-      <button id="saveName" class="btn btn-primary">Weiter</button>
+      <input type="text" id="userName" placeholder="Name" />
+      <button id="saveName" class="btn btn-primary">Speichern</button>
     </div>
   </div>
 
-  <div class="modal" id="infoModal" aria-hidden="true">
+  <div id="infoModal" class="modal" aria-hidden="true">
     <div class="modal-content">
       <h3>Info</h3>
-      <p>Ich helfe dir beim Planen und Verwalten deines Budgets.</p>
+      <p>Diese Website hilft dir, dein Budget zu planen und Ausgaben im Blick zu behalten.</p>
       <button id="closeInfo" class="btn btn-primary">Weiter</button>
     </div>
   </div>
 
-  <div class="modal" id="categoryInfoModal" aria-hidden="true">
+  <div id="categoryInfoModal" class="modal" aria-hidden="true">
     <div class="modal-content">
-      <h3>Kategorien</h3>
-      <p>Lege zuerst eigene Kategorien an, damit du sie beim Hinzufügen auswählen kannst.</p>
+      <h3>Kategorien setzen</h3>
+      <p>Bitte lege zuerst deine eigenen Kategorien an, bevor du Ausgaben erfasst.</p>
       <button id="closeCategoryInfo" class="btn btn-primary">Weiter</button>
     </div>
   </div>
 
-  <div class="modal" id="paydayModal" aria-hidden="true">
+  <div id="paydayModal" class="modal" aria-hidden="true">
     <div class="modal-content">
-      <h3>Zahltag</h3>
-      <p>Wähle deinen Zahltag (1–28)</p>
-      <select id="paydaySelect">
-        ${Array.from({ length: 28 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
-      </select>
+      <h3>Zahltag festlegen</h3>
+      <p>Wähle den Tag im Monat, an dem dein Budget zurückgesetzt werden soll.</p>
+      <select id="paydaySelect"></select>
       <button id="savePayday" class="btn btn-primary">Speichern</button>
     </div>
   </div>
