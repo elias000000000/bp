@@ -2,8 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Budget Planer</title>
 
   <!-- Schriftart -->
@@ -16,8 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <!-- docx (Word-Export) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.0.1/docx.min.js"
-          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.0.1/docx.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <!-- App -->
   <script defer src="app.js"></script>
@@ -34,12 +32,12 @@
 
   <!-- Vollbild-Menü-Overlay mit vertikalen Tabs -->
   <aside id="menuOverlay" class="menu-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="menu-backdrop" id="menuBackdrop"></div>
     <div class="menu-sheet" role="menu" aria-label="Hauptmenü">
       <header class="menu-header">
         <h3>Menü</h3>
         <button id="closeMenu" class="menu-close" aria-label="Menü schliessen">×</button>
       </header>
-
       <nav class="menu-list">
         <button class="menu-item" data-tab="budget" role="menuitem" aria-controls="tab-budget">Budget</button>
         <button class="menu-item" data-tab="list" role="menuitem" aria-controls="tab-list">Auflistung</button>
@@ -52,15 +50,13 @@
     </div>
   </aside>
 
-  <!-- Seitenkopf mit Gradient und Zitat -->
+  <!-- Seitenkopf -->
   <header class="panel header-panel" role="banner">
     <div id="greeting" class="muted">Hallo –</div>
-
     <h2 id="monthRange">
       <span id="budgetWord" class="gradient-text">Dein Budget</span>
       <span>für&nbsp;<span id="monthText">–</span></span>
     </h2>
-
     <div id="currentDate" class="muted">–</div>
     <p id="quote" class="quote" aria-live="polite"></p>
   </header>
@@ -107,10 +103,10 @@
       <div id="transactionList" class="panel list-panel" aria-live="polite"></div>
     </section>
 
-    <!-- TAB: Verlauf (Diagramm + kompakte Liste) -->
+    <!-- TAB: Verlauf -->
     <section id="tab-history" class="tab" role="region" aria-label="Verlauf">
       <div class="panel">
-        <canvas id="expenseChart" width="400" height="320" aria-label="Ausgaben-Diagramm" role="img"></canvas>
+        <canvas id="expenseChart" width="420" height="320" aria-label="Ausgaben-Diagramm" role="img"></canvas>
       </div>
       <div id="historyList" class="panel list-panel"></div>
     </section>
@@ -141,24 +137,25 @@
     <section id="tab-settings" class="tab" role="region" aria-label="Einstellungen">
       <div class="panel">
         <h3>Farbschema wählen</h3>
+        <!-- Buttons zeigen ihre echten Farben, unabhängig vom aktuellen Theme -->
         <div class="theme-grid">
-          <button class="theme-btn" data-theme-select="standard" type="button" title="Grün/gelb">Standard</button>
-          <button class="theme-btn" data-theme-select="warm" type="button" title="Rot/orange">Warm</button>
-          <button class="theme-btn" data-theme-select="kalt" type="button" title="Blau/hellblau">Kalt</button>
-          <button class="theme-btn" data-theme-select="fancy" type="button" title="Sättigtes Mint/Türkis">Fancy</button>
-          <button class="theme-btn" data-theme-select="special" type="button" title="Violett/gelb">Special</button>
-          <button class="theme-btn" data-theme-select="girly" type="button" title="Pink/violett">Girly</button>
+          <button class="theme-btn theme-swatch-standard" data-theme-select="standard" type="button" title="Grün/gelb">Standard</button>
+          <button class="theme-btn theme-swatch-warm" data-theme-select="warm" type="button" title="Rot/orange">Warm</button>
+          <button class="theme-btn theme-swatch-kalt" data-theme-select="kalt" type="button" title="Blau/hellblau">Kalt</button>
+          <button class="theme-btn theme-swatch-fancy" data-theme-select="fancy" type="button" title="Sättigtes Mint/Türkis">Fancy</button>
+          <button class="theme-btn theme-swatch-special" data-theme-select="special" type="button" title="Violett/gelb">Special</button>
+          <button class="theme-btn theme-swatch-girly" data-theme-select="girly" type="button" title="Pink/violett">Girly</button>
         </div>
       </div>
 
       <div class="panel">
         <h3>Exporte</h3>
         <div class="export-grid">
-          <button id="exportWord" class="btn btn-primary" type="button" title="Transaktionen als Word (.docx) mit Kategorien und Totals">Verlauf als Word</button>
-          <button id="exportCSV" class="btn btn-primary" type="button" title="Transaktionen als CSV-Datei">Verlauf als CSV</button>
-          <button id="exportChart" class="btn btn-primary" type="button" title="Aktuelles Diagramm als PNG-Bild speichern">Diagramm als PNG</button>
+          <button id="exportWord" class="btn btn-primary" type="button">Verlauf als Word</button>
+          <button id="exportCSV" class="btn btn-primary" type="button">Verlauf als CSV</button>
+          <button id="exportChart" class="btn btn-primary" type="button">Diagramm als PNG</button>
         </div>
-        <small class="muted">Hinweis: Word/CSV exportieren die aktuelle Periode (vom eingestellten Zahltag bis zum nächsten).</small>
+        <small class="muted">Es wird die aktuelle Periode exportiert (definiert durch deinen Zahltag).</small>
       </div>
 
       <div class="panel">
@@ -167,7 +164,7 @@
           <input id="paydaySelectSettings" type="number" min="1" max="28" step="1" placeholder="1–28" />
           <button id="savePaydaySettings" class="btn btn-primary" type="button">Speichern</button>
         </div>
-        <small class="muted">Am Zahltag wird die Periode automatisiert archiviert und Budget/Ausgaben werden zurückgesetzt.</small>
+        <small class="muted">Am Zahltag wird automatisch archiviert und das Budget zurückgesetzt.</small>
       </div>
     </section>
 
@@ -177,7 +174,7 @@
     </section>
   </main>
 
-  <!-- Popups (Willkommen → Info → Kategorien-Hinweis → Zahltag) -->
+  <!-- Popups (Onboarding: Willkommen → Info → Kategorien-Hinweis → Zahltag) -->
   <div id="welcomeModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
     <div class="modal-content">
       <h3 id="welcomeTitle">Willkommen!</h3>
@@ -190,15 +187,15 @@
   <div id="infoModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
     <div class="modal-content">
       <h3 id="infoTitle">Kurzinfo</h3>
-      <p>Ich helfe dir dabei, deine Ausgaben zu tracken, Kategorien zu ordnen und am Zahltag alles sauber zu archivieren. So behältst du den Überblick und sparst smarter.</p>
+      <p>Ich helfe dir dabei, Ausgaben zu erfassen, Kategorien zu ordnen und am Zahltag alles sauber zu archivieren. So behältst du den Überblick und sparst smarter.</p>
       <button id="closeInfo" class="btn btn-primary" type="button">Weiter</button>
     </div>
   </div>
 
   <div id="categoryInfoModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="catInfoTitle">
     <div class="modal-content">
-      <h3 id="catInfoTitle">Bevor es losgeht</h3>
-      <p>Lege bitte zuerst deine eigenen Kategorien an. Danach kannst du im Reiter <strong>Budget</strong> Ausgaben hinzufügen.</p>
+      <h3 id="catInfoTitle">Noch ein Schritt</h3>
+      <p>Lege zuerst deine eigenen Kategorien an. Danach kannst du im Reiter <strong>Budget</strong> Ausgaben hinzufügen.</p>
       <button id="closeCategoryInfo" class="btn btn-primary" type="button">Weiter</button>
     </div>
   </div>
@@ -206,13 +203,13 @@
   <div id="paydayModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="paydayTitle">
     <div class="modal-content">
       <h3 id="paydayTitle">Zahltag festlegen</h3>
-      <p>Bitte wähle deinen monatlichen Zahltag (1–28). An diesem Tag wird automatisch archiviert.</p>
+      <p>Wähle deinen monatlichen Zahltag (1–28). An diesem Tag wird automatisch archiviert.</p>
       <input id="paydaySelect" type="number" min="1" max="28" step="1" placeholder="z.B. 20" />
       <button id="savePayday" class="btn btn-primary" type="button">Speichern</button>
     </div>
   </div>
 
-  <!-- Live-Region für kurze Statusmeldungen -->
+  <!-- Live-Region für kurze Statusmeldungen (Screenreader) -->
   <div id="sr-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
