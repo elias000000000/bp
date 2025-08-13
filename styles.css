@@ -1,301 +1,365 @@
-/* ================================
-   Basis-Reset & Grundlayout
-   ================================ */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* =========================================
+   Reset & Basistypografie
+   ========================================= */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
   height: 100%;
-  font-family: 'Nunito', sans-serif;
-  background: var(--bg-color);
-  color: var(--text-color);
+  font-family: 'Nunito', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* iPhone Safe-Area Handling */
-body {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: calc(60px + env(safe-area-inset-bottom));
-}
-
-/* ================================
-   Farbvariablen pro Theme
-   ================================ */
 :root {
-  --bg-color: #f7f7f7;
-  --text-color: #222;
-  --panel-bg: #fff;
-  --panel-border: #ddd;
+  --bg-color: #f7f7f9;
+  --text-color: #1f2328;
+  --panel-bg: #ffffff;
+  --panel-border: #e6e6ea;
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+
+  /* Default (Standard) Accent: gelb -> grün */
   --accent: linear-gradient(90deg, #f1c40f, #2ecc71);
+  --accent-solid: #2ecc71;
+
+  /* Kontrastschichten (für Overlays) */
+  --backdrop: rgba(10, 12, 16, 0.45);
+  --menu-surface: rgba(255, 255, 255, 0.9);
 }
 
+/* Safe-Area für iPhone (Dynamic Island & Home-Bar) */
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  padding-top: calc(env(safe-area-inset-top) + 8px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
+}
+
+/* =========================================
+   Themes
+   ========================================= */
 .theme-standard {
   --accent: linear-gradient(90deg, #f1c40f, #2ecc71);
+  --accent-solid: #2ecc71;
 }
-
 .theme-warm {
   --accent: linear-gradient(90deg, #e74c3c, #e67e22);
+  --accent-solid: #e67e22;
 }
-
 .theme-kalt {
   --accent: linear-gradient(90deg, #3498db, #5dade2);
+  --accent-solid: #3498db;
 }
-
 .theme-fancy {
-  --accent: linear-gradient(90deg, #2ecc71, #1abc9c);
+  /* satter Mint/Türkis */
+  --accent: linear-gradient(90deg, #00d084, #00c2b2);
+  --accent-solid: #00c2b2;
 }
-
 .theme-special {
   --accent: linear-gradient(90deg, #8e44ad, #f1c40f);
+  --accent-solid: #8e44ad;
 }
-
 .theme-girly {
   --accent: linear-gradient(90deg, #ff69b4, #8e44ad);
+  --accent-solid: #ff69b4;
 }
 
-/* ================================
-   Panels & Container
-   ================================ */
+/* =========================================
+   Header / Panel / Typo
+   ========================================= */
 .panel {
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 16px;
   margin: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .header-panel {
   text-align: center;
   padding-top: 10px;
   padding-bottom: 14px;
+  margin-top: 4px;
 }
 
-/* ================================
-   Textgestaltung
-   ================================ */
+.muted { color: #6a6f76; }
+.big { font-size: 1.35rem; font-weight: 800; }
+
 .gradient-text {
   background: var(--accent);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .quote {
-  font-size: 0.9rem;
   margin-top: 6px;
-  color: var(--text-color);
+  font-size: 0.95rem;
+  line-height: 1.35;
 }
 
-.muted {
-  color: #777;
-}
+/* rot/fett wenn < 200 CHF */
+.red-alert { color: #e53935; font-weight: 900; }
 
-.big {
-  font-size: 1.4rem;
-  font-weight: bold;
-}
-
-.red-alert {
-  color: red;
-  font-weight: bold;
-}
-
-/* ================================
-   Navigation unten (iPhone-ready)
-   ================================ */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: var(--panel-bg);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  border-top: 1px solid var(--panel-border);
-  padding-bottom: env(safe-area-inset-bottom);
-  z-index: 1000;
-}
-
-.bottom-nav-btn {
-  flex: 1;
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: #777;
-  padding: 8px 0;
-}
-
-.bottom-nav-btn.active {
-  color: #000;
-  font-weight: bold;
-}
-
-/* ================================
-   Tabs
-   ================================ */
-.tab {
-  display: none;
-}
-
-.tab.active {
-  display: block;
-}
-
-/* ================================
-   Eingaben & Buttons
-   ================================ */
+/* =========================================
+   Formular- & Button-Stile
+   ========================================= */
 input, select, button {
-  font-family: inherit;
-  font-size: 1rem;
+  font: inherit;
+  color: inherit;
 }
 
 input, select {
-  padding: 8px 10px;
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
   width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: #fff;
 }
 
 .input-row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .btn {
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
+  font-weight: 800;
 }
 
 .btn-primary {
   background: var(--accent);
-  color: white;
+  color: #ffffff;
   background-size: 200% auto;
-  transition: background-position 0.3s;
+  transition: background-position .25s ease, transform .06s ease;
 }
+.btn-primary:hover { background-position: right center; }
+.btn-primary:active { transform: translateY(1px); }
 
-.btn-primary:hover {
-  background-position: right center;
-}
-
-/* ================================
-   KPI / Kennzahlen
-   ================================ */
+/* =========================================
+   KPI
+   ========================================= */
 .kpi-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
 }
+.kpi .kpi-label { font-size: 0.9rem; color: #6a6f76; margin-bottom: 6px; }
+.kpi .kpi-value { font-size: 1.05rem; }
 
-.kpi-label {
-  font-size: 0.9rem;
-  color: #777;
-}
-
-.kpi-value {
-  font-size: 1rem;
-}
-
-/* ================================
+/* =========================================
    Listen / Chips
-   ================================ */
-.list-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
+   ========================================= */
+.list-panel { display: grid; gap: 10px; }
 .chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
 }
+.chips .panel { padding: 8px 12px; font-size: .9rem; }
 
-.chips .panel {
-  padding: 6px 10px;
-  font-size: 0.85rem;
-}
-
-/* ================================
-   Theme Grid in Einstellungen
-   ================================ */
+/* =========================================
+   Theme-Auswahl (farbige Swatches)
+   ========================================= */
 .theme-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 10px;
 }
-
 .theme-btn {
-  padding: 8px;
-  border-radius: 8px;
   border: none;
-  cursor: pointer;
-  font-weight: bold;
-  color: white;
-  background: var(--accent);
+  border-radius: 12px;
+  padding: 12px 10px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform .06s ease, box-shadow .15s ease;
 }
+.theme-btn:active { transform: translateY(1px); }
 
-/* ================================
-   Export Buttons
-   ================================ */
-.export-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+/* Knöpfe mit echten Theme-Farben (ohne Wechsel durch body-class) */
+.theme-btn[data-theme-select="standard"] { background: linear-gradient(90deg, #f1c40f, #2ecc71); }
+.theme-btn[data-theme-select="warm"]     { background: linear-gradient(90deg, #e74c3c, #e67e22); }
+.theme-btn[data-theme-select="kalt"]     { background: linear-gradient(90deg, #3498db, #5dade2); }
+.theme-btn[data-theme-select="fancy"]    { background: linear-gradient(90deg, #00d084, #00c2b2); }
+.theme-btn[data-theme-select="special"]  { background: linear-gradient(90deg, #8e44ad, #f1c40f); color:#fff; }
+.theme-btn[data-theme-select="girly"]    { background: linear-gradient(90deg, #ff69b4, #8e44ad); }
 
-/* ================================
-   Modals
-   ================================ */
+/* =========================================
+   Exporte
+   ========================================= */
+.export-grid { display: grid; gap: 10px; }
+
+/* =========================================
+   Tabs (Content)
+   ========================================= */
+.tab { display: none; }
+.tab.active { display: block; }
+
+/* =========================================
+   Modals / Popups
+   ========================================= */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
   display: none;
   align-items: center;
   justify-content: center;
+  background: var(--backdrop);
   z-index: 2000;
+  padding: 20px;
 }
-
-.modal[aria-hidden="false"] {
-  display: flex;
-}
+.modal[aria-hidden="false"] { display: flex; }
 
 .modal-content {
+  width: min(92vw, 420px);
   background: var(--panel-bg);
-  padding: 20px;
-  border-radius: 14px;
-  width: 90%;
-  max-width: 400px;
+  color: var(--text-color);
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  padding: 18px 16px;
+  box-shadow: var(--shadow-md);
   text-align: center;
 }
+.modal-content h3 { margin-bottom: 10px; }
 
-.modal-content h3 {
-  margin-bottom: 10px;
+/* =========================================
+   Hamburger-Menü (Overlay)
+   ========================================= */
+.menu-button {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 10px);
+  left: 12px;
+  z-index: 2200;
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  box-shadow: var(--shadow-sm);
+  display: grid; place-items: center;
 }
 
-/* ================================
-   Screenreader-Only Content
-   ================================ */
+.menu-icon,
+.menu-icon::before,
+.menu-icon::after {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text-color);
+  border-radius: 1px;
+  position: relative;
+}
+.menu-icon::before { position: absolute; top: -6px; left: 0; }
+.menu-icon::after  { position: absolute; top:  6px; left: 0; }
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--backdrop);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 2100;
+}
+
+.menu-overlay[aria-hidden="false"] { display: flex; }
+
+.menu-sheet {
+  margin-top: calc(env(safe-area-inset-top) + 60px);
+  width: min(92vw, 520px);
+  background: var(--menu-surface);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  animation: drop-in .18s ease-out both;
+  backdrop-filter: saturate(1.2) blur(6px);
+}
+
+@keyframes drop-in {
+  from { transform: translateY(-6px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.menu-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--panel-border);
+}
+.menu-header h3 { font-size: 1.05rem; }
+
+.menu-close {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+  background: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.menu-list {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.03), transparent 40%),
+    var(--panel-bg);
+}
+
+.menu-item {
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.menu-item:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: #d7d7dc;
+}
+.menu-item:active { transform: translateY(1px); }
+
+/* =========================================
+   Main Area
+   ========================================= */
+.main-content {
+  padding: 4px 0 90px; /* Platz unten, da kein Bottom-Tab mehr, trotzdem komfortabel */
+}
+
+/* =========================================
+   Diagramm
+   ========================================= */
+canvas { max-width: 100%; height: auto !important; }
+
+/* =========================================
+   Screenreader-Only
+   ========================================= */
 .sr-only {
-  position: absolute;
-  left: -9999px;
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
 }
 
-/* ================================
-   Canvas Diagramm
-   ================================ */
-canvas {
-  max-width: 100%;
-  height: auto !important;
+/* =========================================
+   Kleinere Viewports / Feintuning
+   ========================================= */
+@media (max-width: 360px) {
+  .panel { margin: 10px; padding: 14px; }
+  .theme-btn { padding: 10px 8px; font-size: 0.95rem; }
+  .menu-button { width: 42px; height: 42px; }
 }
