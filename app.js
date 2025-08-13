@@ -1,243 +1,229 @@
 // ==========================
-// Globale Variablen
+// Globale Variablen & State
 // ==========================
+let userName = "";
+let totalBudget = 0;
 let transactions = [];
 let categories = [];
-let archive = [];
-let totalBudget = 0;
 let payday = null;
-let currentTheme = 'standard';
-let quotes = [
-  "Sparen ist der erste Schritt zum Vermögen.",
-  "Kleine Ausgaben summieren sich zu grossen Beträgen.",
-  "Wer sein Budget kennt, lebt entspannter.",
-  "Planung ist der halbe Weg zum Ziel.",
+let savedAmount = 0;
+let archives = [];
+let currentTheme = "standard";
+let chartInstance = null;
+
+// ==========================
+// Zitate (monatlich wiederverwendbar)
+// ==========================
+const quotes = [
+  "Spare, wenn du kannst, damit du hast, wenn du musst.",
   "Jeder Franken zählt.",
-  "Spare heute, profitiere morgen."
+  "Kontrolle ist der Schlüssel zu Freiheit.",
+  "Ein kleines Budget kann auch grosse Träume erfüllen.",
+  "Plane heute, damit du morgen frei bist.",
+  "Gib nicht mehr aus, als du hast.",
+  "Sparen ist der erste Schritt zum Vermögen."
 ];
-let chart = null;
 
 // ==========================
-// DOM-Elemente selektieren
+// DOM-Elemente
 // ==========================
-const greetingEl = document.getElementById('greeting');
-const monthRangeEl = document.getElementById('monthRange');
-const monthTextEl = document.getElementById('monthText');
-const budgetWordEl = document.getElementById('budgetWord');
-const currentDateEl = document.getElementById('currentDate');
-const quoteEl = document.getElementById('quote');
-const totalBudgetInput = document.getElementById('totalBudget');
-const saveBudgetBtn = document.getElementById('saveBudget');
-const txCategorySelect = document.getElementById('txCategory');
-const txDescInput = document.getElementById('txDesc');
-const txAmountInput = document.getElementById('txAmount');
-const addTxBtn = document.getElementById('addTx');
-const spentEl = document.getElementById('spent');
-const remainingEl = document.getElementById('remaining');
-const transactionListEl = document.getElementById('transactionList');
-const historyListEl = document.getElementById('historyList');
-const savedAmountEl = document.getElementById('savedAmount');
-const categoriesListEl = document.getElementById('categoriesList');
-const newCategoryNameInput = document.getElementById('newCategoryName');
-const addCategoryBtn = document.getElementById('addCategory');
-const exportWordBtn = document.getElementById('exportWord');
-const exportCSVBtn = document.getElementById('exportCSV');
-const exportChartBtn = document.getElementById('exportChart');
-const paydaySelectSettings = document.getElementById('paydaySelectSettings');
-const savePaydaySettingsBtn = document.getElementById('savePaydaySettings');
-const archiveListEl = document.getElementById('archiveList');
+const greetingEl = document.getElementById("greeting");
+const monthRangeEl = document.getElementById("monthRange");
+const monthTextEl = document.getElementById("monthText");
+const currentDateEl = document.getElementById("currentDate");
+const quoteEl = document.getElementById("quote");
+const budgetWordEl = document.getElementById("budgetWord");
+const spentEl = document.getElementById("spent");
+const remainingEl = document.getElementById("remaining");
+const txCategoryEl = document.getElementById("txCategory");
+const txDescEl = document.getElementById("txDesc");
+const txAmountEl = document.getElementById("txAmount");
+const transactionListEl = document.getElementById("transactionList");
+const historyListEl = document.getElementById("historyList");
+const savedAmountEl = document.getElementById("savedAmount");
+const categoriesListEl = document.getElementById("categoriesList");
+const archiveListEl = document.getElementById("archiveList");
 
-// Modals
-const welcomeModal = document.getElementById('welcomeModal');
-const infoModal = document.getElementById('infoModal');
-const categoryInfoModal = document.getElementById('categoryInfoModal');
-const paydayModal = document.getElementById('paydayModal');
-const userNameInput = document.getElementById('userName');
-const saveNameBtn = document.getElementById('saveName');
-const closeInfoBtn = document.getElementById('closeInfo');
-const closeCategoryInfoBtn = document.getElementById('closeCategoryInfo');
-const savePaydayBtn = document.getElementById('savePayday');
+// Popups
+const welcomeModal = document.getElementById("welcomeModal");
+const infoModal = document.getElementById("infoModal");
+const categoryInfoModal = document.getElementById("categoryInfoModal");
+const paydayModal = document.getElementById("paydayModal");
 
-// Menü-Elemente
-const menuButton = document.getElementById('menuButton');
-const menuOverlay = document.getElementById('menuOverlay');
-const closeMenuBtn = document.getElementById('closeMenu');
-const menuItems = document.querySelectorAll('.menu-item');
+// Menü
+const menuButton = document.getElementById("menuButton");
+const menuOverlay = document.getElementById("menuOverlay");
+const menuBackdrop = document.getElementById("menuBackdrop");
+const closeMenu = document.getElementById("closeMenu");
 
 // ==========================
 // Initialisierung
 // ==========================
-document.addEventListener('DOMContentLoaded', () => {
-  loadState();
-  showDate();
-  showQuote();
-  updateUI();
-  checkPaydayAutoArchive();
-  showModal(welcomeModal);
-});
-
-// ==========================
-// Funktionen: Datum, Zitat
-// ==========================
-function showDate() {
-  const now = new Date();
-  const monthName = now.toLocaleString('de-DE', { month: 'long' });
-  const year = now.getFullYear();
-  currentDateEl.textContent = now.toLocaleString('de-DE');
-  monthTextEl.textContent = `${monthName} ${year}`;
-}
-
-function showQuote() {
-  const today = new Date().getDate();
-  const index = today % quotes.length;
-  quoteEl.innerHTML = `<span style="color: var(--accent)">&ldquo;</span>${quotes[index]}<span style="color: var(--accent)">&rdquo;</span>`;
-}
-
-// ==========================
-// Popups anzeigen
-// ==========================
-function showModal(modal) {
-  modal.setAttribute('aria-hidden', 'false');
-}
-function hideModal(modal) {
-  modal.setAttribute('aria-hidden', 'true');
-}
-
-// ==========================
-// Budget speichern
-// ==========================
-saveBudgetBtn.addEventListener('click', () => {
-  totalBudget = parseFloat(totalBudgetInput.value) || 0;
-  saveState();
-  updateUI();
-});
-
-// ==========================
-// Ausgaben hinzufügen
-// ==========================
-addTxBtn.addEventListener('click', () => {
-  const category = txCategorySelect.value;
-  const desc = txDescInput.value.trim();
-  const amount = parseFloat(txAmountInput.value) || 0;
-  if (!category || !desc || amount <= 0) return;
-
-  transactions.push({ category, desc, amount });
-  txDescInput.value = '';
-  txAmountInput.value = '';
-  saveState();
-  updateUI();
-});
-
-// ==========================
-// Kategorien verwalten
-// ==========================
-addCategoryBtn.addEventListener('click', () => {
-  const name = newCategoryNameInput.value.trim();
-  if (!name) return;
-  categories.push(name);
-  newCategoryNameInput.value = '';
-  saveState();
+document.addEventListener("DOMContentLoaded", () => {
+  loadFromStorage();
+  updateHeader();
   renderCategories();
+  renderTransactions();
+  renderChart();
+  checkPayday();
+  updateSavedAmount();
+  showQuote();
+
+  if (!userName) {
+    openModal(welcomeModal);
+  }
 });
 
-function renderCategories() {
-  categoriesListEl.innerHTML = '';
-  txCategorySelect.innerHTML = '';
-  categories.forEach(cat => {
-    const chip = document.createElement('div');
-    chip.className = 'panel';
-    chip.textContent = cat;
-    chip.addEventListener('click', () => {
-      const newName = prompt('Kategorie umbenennen:', cat);
-      if (newName) {
-        categories[categories.indexOf(cat)] = newName;
-        saveState();
-        renderCategories();
-      }
-    });
-    chip.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      if (confirm(`Kategorie "${cat}" löschen?`)) {
-        categories = categories.filter(c => c !== cat);
-        saveState();
-        renderCategories();
-      }
-    });
-    categoriesListEl.appendChild(chip);
+// ==========================
+// Menü-Logik
+// ==========================
+menuButton.addEventListener("click", () => {
+  menuOverlay.setAttribute("aria-hidden", "false");
+  menuButton.setAttribute("aria-expanded", "true");
+});
+menuBackdrop.addEventListener("click", closeMenuOverlay);
+closeMenu.addEventListener("click", closeMenuOverlay);
 
-    const option = document.createElement('option');
-    option.value = cat;
-    option.textContent = cat;
-    txCategorySelect.appendChild(option);
+function closeMenuOverlay() {
+  menuOverlay.setAttribute("aria-hidden", "true");
+  menuButton.setAttribute("aria-expanded", "false");
+}
+
+// Menü-Tabs
+document.querySelectorAll(".menu-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    switchTab(btn.dataset.tab);
+    closeMenuOverlay();
+  });
+});
+
+// ==========================
+// Popup-Logik
+// ==========================
+document.getElementById("saveName").addEventListener("click", () => {
+  const val = document.getElementById("userName").value.trim();
+  if (val) {
+    userName = val;
+    saveToStorage();
+    closeModal(welcomeModal);
+    openModal(infoModal);
+    updateHeader();
+  }
+});
+
+document.getElementById("closeInfo").addEventListener("click", () => {
+  closeModal(infoModal);
+  openModal(categoryInfoModal);
+});
+
+document.getElementById("closeCategoryInfo").addEventListener("click", () => {
+  closeModal(categoryInfoModal);
+  openModal(paydayModal);
+});
+
+document.getElementById("savePayday").addEventListener("click", () => {
+  const val = parseInt(document.getElementById("paydaySelect").value);
+  if (val >= 1 && val <= 28) {
+    payday = val;
+    saveToStorage();
+    closeModal(paydayModal);
+  }
+});
+
+// ==========================
+// Budget-Funktionen
+// ==========================
+document.getElementById("saveBudget").addEventListener("click", () => {
+  totalBudget = parseFloat(document.getElementById("totalBudget").value) || 0;
+  saveToStorage();
+  updateBudgetUI();
+});
+
+document.getElementById("addTx").addEventListener("click", () => {
+  const cat = txCategoryEl.value;
+  const desc = txDescEl.value.trim();
+  const amt = parseFloat(txAmountEl.value) || 0;
+  if (!cat || !desc || amt <= 0) return;
+
+  transactions.push({ category: cat, description: desc, amount: amt });
+  saveToStorage();
+  txDescEl.value = "";
+  txAmountEl.value = "";
+  renderTransactions();
+  renderChart();
+  updateBudgetUI();
+});
+
+function renderTransactions() {
+  transactionListEl.innerHTML = "";
+  transactions.forEach((tx, i) => {
+    const div = document.createElement("div");
+    div.className = "panel";
+    div.innerHTML = `<strong>${tx.category}</strong><br>${tx.description}<br>CHF ${tx.amount.toFixed(2)}`;
+    transactionListEl.appendChild(div);
   });
 }
 
-// ==========================
-// UI aktualisieren
-// ==========================
-function updateUI() {
-  renderCategories();
-  renderTransactions();
-  updateKPIs();
-  renderHistory();
-  renderArchive();
-}
-
-// ==========================
-// KPIs
-// ==========================
-function updateKPIs() {
-  const spent = transactions.reduce((sum, t) => sum + t.amount, 0);
+function updateBudgetUI() {
+  const spent = transactions.reduce((sum, tx) => sum + tx.amount, 0);
   const remaining = totalBudget - spent;
   spentEl.textContent = `CHF ${spent.toFixed(2)}`;
   remainingEl.textContent = `CHF ${remaining.toFixed(2)}`;
   if (remaining < 200) {
-    remainingEl.classList.add('red-alert');
+    remainingEl.classList.add("red-alert");
   } else {
-    remainingEl.classList.remove('red-alert');
+    remainingEl.classList.remove("red-alert");
   }
-  savedAmountEl.textContent = `CHF ${remaining.toFixed(2)}`;
 }
 
 // ==========================
-// Transaktionen anzeigen
+// Kategorien
 // ==========================
-function renderTransactions() {
-  transactionListEl.innerHTML = '';
-  transactions.forEach(tx => {
-    const row = document.createElement('div');
-    row.className = 'panel';
-    row.innerHTML = `<strong>${tx.category}</strong>: ${tx.desc} - CHF ${tx.amount.toFixed(2)}`;
-    transactionListEl.appendChild(row);
+document.getElementById("addCategory").addEventListener("click", () => {
+  const name = document.getElementById("newCategoryName").value.trim();
+  if (name && !categories.includes(name)) {
+    categories.push(name);
+    saveToStorage();
+    renderCategories();
+    document.getElementById("newCategoryName").value = "";
+  }
+});
+
+function renderCategories() {
+  txCategoryEl.innerHTML = "";
+  categoriesListEl.innerHTML = "";
+  categories.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    txCategoryEl.appendChild(opt);
+
+    const chip = document.createElement("div");
+    chip.className = "panel";
+    chip.textContent = cat;
+    categoriesListEl.appendChild(chip);
   });
 }
 
 // ==========================
-// Verlauf & Diagramm
+// Chart.js Diagramm
 // ==========================
-function renderHistory() {
-  historyListEl.innerHTML = '';
+function renderChart() {
+  const ctx = document.getElementById("expenseChart").getContext("2d");
+  const dataByCat = {};
   transactions.forEach(tx => {
-    const row = document.createElement('div');
-    row.className = 'panel';
-    row.textContent = `${tx.category}: ${tx.desc} - CHF ${tx.amount.toFixed(2)}`;
-    historyListEl.appendChild(row);
+    dataByCat[tx.category] = (dataByCat[tx.category] || 0) + tx.amount;
   });
 
-  const ctx = document.getElementById('expenseChart').getContext('2d');
-  if (chart) chart.destroy();
-  const categorySums = {};
-  transactions.forEach(tx => {
-    categorySums[tx.category] = (categorySums[tx.category] || 0) + tx.amount;
-  });
-  chart = new Chart(ctx, {
-    type: 'pie',
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: "pie",
     data: {
-      labels: Object.keys(categorySums),
+      labels: Object.keys(dataByCat),
       datasets: [{
-        data: Object.values(categorySums),
+        data: Object.values(dataByCat),
         backgroundColor: [
-          '#f1c40f', '#e67e22', '#3498db', '#2ecc71', '#9b59b6', '#ff69b4'
+          "#f1c40f", "#e67e22", "#3498db", "#8e44ad", "#ff69b4", "#2ecc71"
         ]
       }]
     }
@@ -245,160 +231,163 @@ function renderHistory() {
 }
 
 // ==========================
-// Archiv
-// ==========================
-function renderArchive() {
-  archiveListEl.innerHTML = '';
-  archive.forEach(entry => {
-    const row = document.createElement('div');
-    row.className = 'panel';
-    row.innerHTML = `<strong>${entry.date}</strong><br><img src="${entry.chart}" style="max-width:100%">`;
-    archiveListEl.appendChild(row);
-  });
-}
-
-function checkPaydayAutoArchive() {
-  if (!payday) return;
-  const today = new Date();
-  if (today.getDate() === payday) {
-    const chartImage = chart ? chart.toBase64Image() : '';
-    archive.push({
-      date: today.toLocaleDateString(),
-      transactions: [...transactions],
-      chart: chartImage
-    });
-    transactions = [];
-    saveState();
-    updateUI();
-  }
-}
-
-// ==========================
 // Exporte
 // ==========================
-exportCSVBtn.addEventListener('click', () => {
-  let csv = 'Kategorie,Beschreibung,Betrag\n';
+document.getElementById("exportCSV").addEventListener("click", () => {
+  let csv = "Kategorie,Beschreibung,Betrag\n";
   transactions.forEach(tx => {
-    csv += `${tx.category},${tx.desc},${tx.amount}\n`;
+    csv += `${tx.category},${tx.description},${tx.amount}\n`;
   });
-  const blob = new Blob([csv], { type: 'text/csv' });
+  const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.download = 'verlauf.csv';
+  a.download = "verlauf.csv";
   a.click();
   URL.revokeObjectURL(url);
 });
 
-exportWordBtn.addEventListener('click', () => {
-  const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, AlignmentType, TextRun } = docx;
-  const tableRows = [];
+document.getElementById("exportChart").addEventListener("click", () => {
+  const url = document.getElementById("expenseChart").toDataURL("image/png");
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "diagramm.png";
+  a.click();
+});
+
+document.getElementById("exportWord").addEventListener("click", () => {
+  const doc = new docx.Document();
   const grouped = {};
   transactions.forEach(tx => {
     if (!grouped[tx.category]) grouped[tx.category] = [];
     grouped[tx.category].push(tx);
   });
+
   Object.keys(grouped).forEach(cat => {
-    tableRows.push(new TableRow({
-      children: [new TableCell({ children: [new Paragraph({ text: cat, bold: true })], columnSpan: 3 })]
-    }));
-    grouped[cat].forEach(tx => {
-      tableRows.push(new TableRow({
-        children: [
-          new TableCell({ children: [new Paragraph(tx.category)] }),
-          new TableCell({ children: [new Paragraph(tx.desc)] }),
-          new TableCell({ children: [new Paragraph(`CHF ${tx.amount.toFixed(2)}`)] })
-        ]
-      }));
-    });
-    const total = grouped[cat].reduce((sum, t) => sum + t.amount, 0);
-    tableRows.push(new TableRow({
+    doc.addSection({
       children: [
-        new TableCell({ children: [new Paragraph('Total')] }),
-        new TableCell({ children: [new Paragraph('')] }),
-        new TableCell({ children: [new Paragraph(`CHF ${total.toFixed(2)}`)]) }
+        new docx.Paragraph({ text: cat, heading: docx.HeadingLevel.HEADING_1 }),
+        ...grouped[cat].map(tx =>
+          new docx.Paragraph(`${tx.description}: CHF ${tx.amount.toFixed(2)}`)
+        ),
+        new docx.Paragraph({
+          text: `Total: CHF ${grouped[cat].reduce((s, t) => s + t.amount, 0).toFixed(2)}`,
+          bold: true
+        })
       ]
-    }));
+    });
   });
-  const doc = new Document({
-    sections: [{ children: [new Table({ rows: tableRows, width: { size: 100, type: WidthType.PERCENTAGE } })] }]
-  });
-  Packer.toBlob(doc).then(blob => {
+
+  docx.Packer.toBlob(doc).then(blob => {
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'verlauf.docx';
+    a.download = "verlauf.docx";
     a.click();
-    URL.revokeObjectURL(url);
-  });
-});
-
-exportChartBtn.addEventListener('click', () => {
-  if (!chart) return;
-  const link = document.createElement('a');
-  link.href = chart.toBase64Image();
-  link.download = 'diagramm.png';
-  link.click();
-});
-
-// ==========================
-// Menü
-// ==========================
-menuButton.addEventListener('click', () => {
-  menuOverlay.setAttribute('aria-hidden', 'false');
-});
-closeMenuBtn.addEventListener('click', () => {
-  menuOverlay.setAttribute('aria-hidden', 'true');
-});
-menuItems.forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-    document.getElementById(`tab-${item.dataset.tab}`).classList.add('active');
-    menuOverlay.setAttribute('aria-hidden', 'true');
   });
 });
 
 // ==========================
-// Popups
+// Archivierung
 // ==========================
-saveNameBtn.addEventListener('click', () => {
-  greetingEl.textContent = `Hallo ${userNameInput.value}`;
-  hideModal(welcomeModal);
-  showModal(infoModal);
-});
+function checkPayday() {
+  if (!payday) return;
+  const today = new Date();
+  if (today.getDate() === payday) {
+    archives.push({
+      date: today.toLocaleDateString(),
+      transactions: [...transactions]
+    });
+    transactions = [];
+    saveToStorage();
+    renderTransactions();
+    renderArchives();
+  }
+}
 
-closeInfoBtn.addEventListener('click', () => {
-  hideModal(infoModal);
-  showModal(categoryInfoModal);
-});
+function renderArchives() {
+  archiveListEl.innerHTML = "";
+  archives.forEach(arc => {
+    const div = document.createElement("div");
+    div.className = "panel";
+    div.innerHTML = `<strong>${arc.date}</strong> - ${arc.transactions.length} Einträge`;
+    archiveListEl.appendChild(div);
+  });
+}
 
-closeCategoryInfoBtn.addEventListener('click', () => {
-  hideModal(categoryInfoModal);
-  showModal(paydayModal);
-});
+function updateSavedAmount() {
+  const spent = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+  savedAmount = totalBudget - spent;
+  savedAmountEl.textContent = `CHF ${savedAmount.toFixed(2)}`;
+}
 
-savePaydayBtn.addEventListener('click', () => {
-  payday = parseInt(document.getElementById('paydaySelect').value, 10);
-  hideModal(paydayModal);
-  saveState();
+// ==========================
+// Zitate
+// ==========================
+function showQuote() {
+  const today = new Date();
+  const quote = quotes[today.getDate() % quotes.length];
+  quoteEl.innerHTML = `<span style="color: transparent; background: var(--accent); -webkit-background-clip: text;">“</span>${quote}<span style="color: transparent; background: var(--accent); -webkit-background-clip: text;">”</span>`;
+}
+
+// ==========================
+// Theme-Wechsel
+// ==========================
+document.querySelectorAll("[data-theme-select]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentTheme = btn.dataset.themeSelect;
+    document.body.className = `theme-${currentTheme}`;
+    saveToStorage();
+    showQuote();
+  });
 });
 
 // ==========================
-// State speichern/laden
+// Tabs umschalten
 // ==========================
-function saveState() {
-  localStorage.setItem('budgetState', JSON.stringify({
-    transactions, categories, archive, totalBudget, payday, currentTheme
+function switchTab(tabId) {
+  document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+  document.getElementById(`tab-${tabId}`).classList.add("active");
+}
+
+// ==========================
+// Modal-Helfer
+// ==========================
+function openModal(modal) {
+  modal.setAttribute("aria-hidden", "false");
+}
+function closeModal(modal) {
+  modal.setAttribute("aria-hidden", "true");
+}
+
+// ==========================
+// Storage
+// ==========================
+function saveToStorage() {
+  localStorage.setItem("budgetData", JSON.stringify({
+    userName, totalBudget, transactions, categories, payday, savedAmount, archives, currentTheme
   }));
 }
-function loadState() {
-  const data = JSON.parse(localStorage.getItem('budgetState'));
-  if (!data) return;
+
+function loadFromStorage() {
+  const data = JSON.parse(localStorage.getItem("budgetData") || "{}");
+  userName = data.userName || "";
+  totalBudget = data.totalBudget || 0;
   transactions = data.transactions || [];
   categories = data.categories || [];
-  archive = data.archive || [];
-  totalBudget = data.totalBudget || 0;
   payday = data.payday || null;
-  currentTheme = data.currentTheme || 'standard';
+  savedAmount = data.savedAmount || 0;
+  archives = data.archives || [];
+  currentTheme = data.currentTheme || "standard";
   document.body.className = `theme-${currentTheme}`;
+}
+
+// ==========================
+// Header aktualisieren
+// ==========================
+function updateHeader() {
+  const now = new Date();
+  greetingEl.textContent = `Hallo ${userName}`;
+  monthTextEl.textContent = `${now.toLocaleString("de-DE", { month: "long" })} ${now.getFullYear()}`;
+  currentDateEl.textContent = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
 }
