@@ -1,393 +1,279 @@
-// ==========================
-// Globale Variablen & State
-// ==========================
-let userName = "";
-let totalBudget = 0;
-let transactions = [];
-let categories = [];
-let payday = null;
-let savedAmount = 0;
-let archives = [];
-let currentTheme = "standard";
-let chartInstance = null;
-
-// ==========================
-// Zitate (monatlich wiederverwendbar)
-// ==========================
-const quotes = [
-  "Spare, wenn du kannst, damit du hast, wenn du musst.",
-  "Jeder Franken zählt.",
-  "Kontrolle ist der Schlüssel zu Freiheit.",
-  "Ein kleines Budget kann auch grosse Träume erfüllen.",
-  "Plane heute, damit du morgen frei bist.",
-  "Gib nicht mehr aus, als du hast.",
-  "Sparen ist der erste Schritt zum Vermögen."
-];
-
-// ==========================
-// DOM-Elemente
-// ==========================
-const greetingEl = document.getElementById("greeting");
-const monthRangeEl = document.getElementById("monthRange");
-const monthTextEl = document.getElementById("monthText");
-const currentDateEl = document.getElementById("currentDate");
-const quoteEl = document.getElementById("quote");
-const budgetWordEl = document.getElementById("budgetWord");
-const spentEl = document.getElementById("spent");
-const remainingEl = document.getElementById("remaining");
-const txCategoryEl = document.getElementById("txCategory");
-const txDescEl = document.getElementById("txDesc");
-const txAmountEl = document.getElementById("txAmount");
-const transactionListEl = document.getElementById("transactionList");
-const historyListEl = document.getElementById("historyList");
-const savedAmountEl = document.getElementById("savedAmount");
-const categoriesListEl = document.getElementById("categoriesList");
-const archiveListEl = document.getElementById("archiveList");
-
-// Popups
-const welcomeModal = document.getElementById("welcomeModal");
-const infoModal = document.getElementById("infoModal");
-const categoryInfoModal = document.getElementById("categoryInfoModal");
-const paydayModal = document.getElementById("paydayModal");
-
-// Menü
-const menuButton = document.getElementById("menuButton");
-const menuOverlay = document.getElementById("menuOverlay");
-const menuBackdrop = document.getElementById("menuBackdrop");
-const closeMenu = document.getElementById("closeMenu");
-
-// ==========================
-// Initialisierung
-// ==========================
 document.addEventListener("DOMContentLoaded", () => {
-  loadFromStorage();
-  updateHeader();
-  renderCategories();
-  renderTransactions();
-  renderChart();
-  checkPayday();
-  updateSavedAmount();
-  showQuote();
+  const tabs = document.querySelectorAll(".tab");
+  const menuBtn = document.getElementById("menuButton");
+  const menuOverlay = document.getElementById("menuOverlay");
+  const closeMenuBtn = document.getElementById("closeMenu");
+  const menuItems = document.querySelectorAll(".menu-item");
+
+  const greeting = document.getElementById("greeting");
+  const monthText = document.getElementById("monthText");
+  const currentDate = document.getElementById("currentDate");
+  const quoteEl = document.getElementById("quote");
+  const remainingEl = document.getElementById("remaining");
+
+  const userNameInput = document.getElementById("userName");
+  const saveNameBtn = document.getElementById("saveName");
+  const welcomeModal = document.getElementById("welcomeModal");
+  const infoModal = document.getElementById("infoModal");
+  const categoryInfoModal = document.getElementById("categoryInfoModal");
+  const paydayModal = document.getElementById("paydayModal");
+
+  const closeInfoBtn = document.getElementById("closeInfo");
+  const closeCategoryInfoBtn = document.getElementById("closeCategoryInfo");
+  const paydaySelect = document.getElementById("paydaySelect");
+  const savePaydayBtn = document.getElementById("savePayday");
+
+  const txCategory = document.getElementById("txCategory");
+  const txDesc = document.getElementById("txDesc");
+  const txAmount = document.getElementById("txAmount");
+  const addTxBtn = document.getElementById("addTx");
+
+  const totalBudgetInput = document.getElementById("totalBudget");
+  const saveBudgetBtn = document.getElementById("saveBudget");
+  const spentEl = document.getElementById("spent");
+
+  const historyList = document.getElementById("historyList"); // jetzt in Tab Auflistung
+  const transactionList = document.getElementById("transactionList"); // jetzt in Tab Verlauf
+
+  const exportCSVBtn = document.getElementById("exportCSV");
+  const exportWordBtn = document.getElementById("exportWord");
+  const exportChartBtn = document.getElementById("exportChart");
+
+  const categoriesList = document.getElementById("categoriesList");
+  const newCategoryName = document.getElementById("newCategoryName");
+  const addCategoryBtn = document.getElementById("addCategory");
+
+  const archiveList = document.getElementById("archiveList");
+  const savedAmountEl = document.getElementById("savedAmount");
+
+  let transactions = JSON.parse(localStorage.getItem("transactions") || "[]");
+  let totalBudget = parseFloat(localStorage.getItem("totalBudget") || "0");
+  let categories = JSON.parse(localStorage.getItem("categories") || "[]");
+  let userName = localStorage.getItem("userName") || "";
+  let payday = parseInt(localStorage.getItem("payday") || "1");
+  let archives = JSON.parse(localStorage.getItem("archives") || "[]");
+
+  const quotes = [
+    "Spare, bevor du ausgibst.",
+    "Kleine Schritte führen zu großen Ersparnissen.",
+    "Disziplin heute, Freiheit morgen.",
+    "Ein Budget ist ein Plan für deine Träume.",
+    "Jeder Franken zählt."
+  ];
+
+  /* ========== INIT ========== */
+  const now = new Date();
+  const monthNames = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  monthText.textContent = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+  currentDate.textContent = now.toLocaleString("de-CH");
+  quoteEl.innerHTML = `<span style="color:var(--accent)">„</span>${quotes[now.getDate() % quotes.length]}<span style="color:var(--accent)">“</span>`;
 
   if (!userName) {
-    openModal(welcomeModal);
-  }
-});
-
-// ==========================
-// Menü-Logik
-// ==========================
-menuButton.addEventListener("click", () => {
-  menuOverlay.setAttribute("aria-hidden", "false");
-  menuButton.setAttribute("aria-expanded", "true");
-});
-menuBackdrop.addEventListener("click", closeMenuOverlay);
-closeMenu.addEventListener("click", closeMenuOverlay);
-
-function closeMenuOverlay() {
-  menuOverlay.setAttribute("aria-hidden", "true");
-  menuButton.setAttribute("aria-expanded", "false");
-}
-
-// Menü-Tabs
-document.querySelectorAll(".menu-item").forEach(btn => {
-  btn.addEventListener("click", () => {
-    switchTab(btn.dataset.tab);
-    closeMenuOverlay();
-  });
-});
-
-// ==========================
-// Popup-Logik
-// ==========================
-document.getElementById("saveName").addEventListener("click", () => {
-  const val = document.getElementById("userName").value.trim();
-  if (val) {
-    userName = val;
-    saveToStorage();
-    closeModal(welcomeModal);
-    openModal(infoModal);
-    updateHeader();
-  }
-});
-
-document.getElementById("closeInfo").addEventListener("click", () => {
-  closeModal(infoModal);
-  openModal(categoryInfoModal);
-});
-
-document.getElementById("closeCategoryInfo").addEventListener("click", () => {
-  closeModal(categoryInfoModal);
-  openModal(paydayModal);
-});
-
-document.getElementById("savePayday").addEventListener("click", () => {
-  const val = parseInt(document.getElementById("paydaySelect").value);
-  if (val >= 1 && val <= 28) {
-    payday = val;
-    saveToStorage();
-    closeModal(paydayModal);
-  }
-});
-
-// ==========================
-// Budget-Funktionen
-// ==========================
-document.getElementById("saveBudget").addEventListener("click", () => {
-  totalBudget = parseFloat(document.getElementById("totalBudget").value) || 0;
-  saveToStorage();
-  updateBudgetUI();
-});
-
-document.getElementById("addTx").addEventListener("click", () => {
-  const cat = txCategoryEl.value;
-  const desc = txDescEl.value.trim();
-  const amt = parseFloat(txAmountEl.value) || 0;
-  if (!cat || !desc || amt <= 0) return;
-
-  transactions.push({ category: cat, description: desc, amount: amt });
-  saveToStorage();
-  txDescEl.value = "";
-  txAmountEl.value = "";
-  renderTransactions();
-  renderChart();
-  updateBudgetUI();
-});
-
-function renderTransactions() {
-  transactionListEl.innerHTML = "";
-  transactions.forEach((tx, i) => {
-    const div = document.createElement("div");
-    div.className = "panel";
-    div.innerHTML = `<strong>${tx.category}</strong><br>${tx.description}<br>CHF ${tx.amount.toFixed(2)}`;
-    transactionListEl.appendChild(div);
-  });
-}
-
-function updateBudgetUI() {
-  const spent = transactions.reduce((sum, tx) => sum + tx.amount, 0);
-  const remaining = totalBudget - spent;
-  spentEl.textContent = `CHF ${spent.toFixed(2)}`;
-  remainingEl.textContent = `CHF ${remaining.toFixed(2)}`;
-  if (remaining < 200) {
-    remainingEl.classList.add("red-alert");
+    welcomeModal.setAttribute("aria-hidden", "false");
   } else {
-    remainingEl.classList.remove("red-alert");
+    greeting.textContent = `Hallo ${userName}`;
+    checkPayday();
   }
-}
 
-// ==========================
-// Kategorien
-// ==========================
-document.getElementById("addCategory").addEventListener("click", () => {
-  const name = document.getElementById("newCategoryName").value.trim();
-  if (name && !categories.includes(name)) {
-    categories.push(name);
-    saveToStorage();
-    renderCategories();
-    document.getElementById("newCategoryName").value = "";
-  }
-});
+  renderCategories();
+  renderTransactions();
+  updateBudget();
 
-function renderCategories() {
-  txCategoryEl.innerHTML = "";
-  categoriesListEl.innerHTML = "";
-  categories.forEach(cat => {
-    const opt = document.createElement("option");
-    opt.value = cat;
-    opt.textContent = cat;
-    txCategoryEl.appendChild(opt);
-
-    const chip = document.createElement("div");
-    chip.className = "panel";
-    chip.textContent = cat;
-    categoriesListEl.appendChild(chip);
+  /* ========== MENU ========== */
+  menuBtn.addEventListener("click", () => {
+    menuOverlay.setAttribute("aria-hidden", "false");
   });
-}
-
-// ==========================
-// Chart.js Diagramm
-// ==========================
-function renderChart() {
-  const ctx = document.getElementById("expenseChart").getContext("2d");
-  const dataByCat = {};
-  transactions.forEach(tx => {
-    dataByCat[tx.category] = (dataByCat[tx.category] || 0) + tx.amount;
+  closeMenuBtn.addEventListener("click", () => {
+    menuOverlay.setAttribute("aria-hidden", "true");
   });
-
-  if (chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx, {
-    type: "pie",
-    data: {
-      labels: Object.keys(dataByCat),
-      datasets: [{
-        data: Object.values(dataByCat),
-        backgroundColor: [
-          "#f1c40f", "#e67e22", "#3498db", "#8e44ad", "#ff69b4", "#2ecc71"
-        ]
-      }]
+  menuOverlay.addEventListener("click", e => {
+    if (e.target.id === "menuBackdrop") {
+      menuOverlay.setAttribute("aria-hidden", "true");
     }
   });
-}
-
-// ==========================
-// Exporte
-// ==========================
-document.getElementById("exportCSV").addEventListener("click", () => {
-  let csv = "Kategorie,Beschreibung,Betrag\n";
-  transactions.forEach(tx => {
-    csv += `${tx.category},${tx.description},${tx.amount}\n`;
-  });
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "verlauf.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-});
-
-document.getElementById("exportChart").addEventListener("click", () => {
-  const url = document.getElementById("expenseChart").toDataURL("image/png");
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "diagramm.png";
-  a.click();
-});
-
-document.getElementById("exportWord").addEventListener("click", () => {
-  const doc = new docx.Document();
-  const grouped = {};
-  transactions.forEach(tx => {
-    if (!grouped[tx.category]) grouped[tx.category] = [];
-    grouped[tx.category].push(tx);
-  });
-
-  Object.keys(grouped).forEach(cat => {
-    doc.addSection({
-      children: [
-        new docx.Paragraph({ text: cat, heading: docx.HeadingLevel.HEADING_1 }),
-        ...grouped[cat].map(tx =>
-          new docx.Paragraph(`${tx.description}: CHF ${tx.amount.toFixed(2)}`)
-        ),
-        new docx.Paragraph({
-          text: `Total: CHF ${grouped[cat].reduce((s, t) => s + t.amount, 0).toFixed(2)}`,
-          bold: true
-        })
-      ]
+  menuItems.forEach(item => {
+    item.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      document.getElementById(`tab-${item.dataset.tab}`).classList.add("active");
+      menuOverlay.setAttribute("aria-hidden", "true");
     });
   });
 
-  docx.Packer.toBlob(doc).then(blob => {
+  /* ========== POPUPS ========== */
+  saveNameBtn.addEventListener("click", () => {
+    userName = userNameInput.value.trim();
+    if (!userName) return;
+    localStorage.setItem("userName", userName);
+    greeting.textContent = `Hallo ${userName}`;
+    welcomeModal.setAttribute("aria-hidden", "true");
+    infoModal.setAttribute("aria-hidden", "false");
+  });
+
+  closeInfoBtn.addEventListener("click", () => {
+    infoModal.setAttribute("aria-hidden", "true");
+    categoryInfoModal.setAttribute("aria-hidden", "false");
+  });
+
+  closeCategoryInfoBtn.addEventListener("click", () => {
+    categoryInfoModal.setAttribute("aria-hidden", "true");
+    paydayModal.setAttribute("aria-hidden", "false");
+  });
+
+  savePaydayBtn.addEventListener("click", () => {
+    payday = parseInt(paydaySelect.value);
+    localStorage.setItem("payday", payday);
+    paydayModal.setAttribute("aria-hidden", "true");
+  });
+
+  /* ========== CATEGORIES ========== */
+  addCategoryBtn.addEventListener("click", () => {
+    const name = newCategoryName.value.trim();
+    if (!name) return;
+    categories.push(name);
+    localStorage.setItem("categories", JSON.stringify(categories));
+    newCategoryName.value = "";
+    renderCategories();
+  });
+
+  function renderCategories() {
+    categoriesList.innerHTML = "";
+    txCategory.innerHTML = "";
+    categories.forEach(cat => {
+      const chip = document.createElement("div");
+      chip.className = "panel";
+      chip.textContent = cat;
+      categoriesList.appendChild(chip);
+
+      const option = document.createElement("option");
+      option.value = cat;
+      option.textContent = cat;
+      txCategory.appendChild(option);
+    });
+  }
+
+  /* ========== TRANSACTIONS ========== */
+  addTxBtn.addEventListener("click", () => {
+    const category = txCategory.value;
+    const desc = txDesc.value.trim();
+    const amount = parseFloat(txAmount.value);
+    if (!category || !desc || isNaN(amount) || amount <= 0) return;
+    transactions.push({ category, desc, amount, date: new Date().toLocaleDateString("de-CH") });
+    localStorage.setItem("transactions", JSON.stringify(transactions));
+    txDesc.value = "";
+    txAmount.value = "";
+    renderTransactions();
+    updateBudget();
+  });
+
+  function renderTransactions() {
+    historyList.innerHTML = "";
+    transactionList.innerHTML = "";
+    transactions.forEach(tx => {
+      const el = document.createElement("div");
+      el.className = "panel";
+      el.textContent = `${tx.date} – ${tx.category}: ${tx.desc} – CHF ${tx.amount.toFixed(2)}`;
+      historyList.appendChild(el);
+      transactionList.appendChild(el.cloneNode(true));
+    });
+  }
+
+  /* ========== BUDGET ========== */
+  saveBudgetBtn.addEventListener("click", () => {
+    totalBudget = parseFloat(totalBudgetInput.value);
+    if (isNaN(totalBudget) || totalBudget <= 0) return;
+    localStorage.setItem("totalBudget", totalBudget);
+    updateBudget();
+  });
+
+  function updateBudget() {
+    const spent = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+    const remaining = totalBudget - spent;
+    spentEl.textContent = `CHF ${spent.toFixed(2)}`;
+    remainingEl.textContent = `CHF ${remaining.toFixed(2)}`;
+    if (remaining < 200) {
+      remainingEl.classList.add("red-alert");
+    } else {
+      remainingEl.classList.remove("red-alert");
+    }
+  }
+
+  /* ========== EXPORTS ========== */
+  exportCSVBtn.addEventListener("click", () => {
+    let csv = "Kategorie,Beschreibung,Betrag\n";
+    transactions.forEach(tx => {
+      csv += `${tx.category},${tx.desc},${tx.amount}\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "verlauf.docx";
+    a.download = "verlauf.csv";
     a.click();
   });
-});
 
-// ==========================
-// Archivierung
-// ==========================
-function checkPayday() {
-  if (!payday) return;
-  const today = new Date();
-  if (today.getDate() === payday) {
-    archives.push({
-      date: today.toLocaleDateString(),
-      transactions: [...transactions]
+  exportWordBtn.addEventListener("click", () => {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun } = window.docx;
+    const rows = transactions.map(tx => new TableRow({
+      children: [
+        new TableCell({ children: [new Paragraph(tx.category)] }),
+        new TableCell({ children: [new Paragraph(tx.desc)] }),
+        new TableCell({ children: [new Paragraph(`CHF ${tx.amount.toFixed(2)}`)] })
+      ]
+    }));
+    const table = new Table({ rows: [new TableRow({
+      children: [
+        new TableCell({ children: [new Paragraph("Kategorie")] }),
+        new TableCell({ children: [new Paragraph("Beschreibung")] }),
+        new TableCell({ children: [new Paragraph("Betrag")] })
+      ]
+    }), ...rows] });
+    const doc = new Document({ sections: [{ children: [table] }] });
+    Packer.toBlob(doc).then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "verlauf.docx";
+      a.click();
     });
-    transactions = [];
-    saveToStorage();
-    renderTransactions();
-    renderArchives();
+  });
+
+  exportChartBtn.addEventListener("click", () => {
+    const canvas = document.querySelector("canvas");
+    if (!canvas) return;
+    const link = document.createElement("a");
+    link.download = "diagramm.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+
+  /* ========== ARCHIVE PAYDAY ========== */
+  function checkPayday() {
+    const today = new Date();
+    if (today.getDate() === payday) {
+      if (transactions.length > 0) {
+        archives.push({
+          date: `${monthNames[today.getMonth()]} ${today.getFullYear()}`,
+          transactions: [...transactions],
+          total: transactions.reduce((sum, tx) => sum + tx.amount, 0)
+        });
+        localStorage.setItem("archives", JSON.stringify(archives));
+        transactions = [];
+        localStorage.setItem("transactions", JSON.stringify([]));
+        renderTransactions();
+        updateBudget();
+        renderArchive();
+      }
+    }
   }
-}
 
-function renderArchives() {
-  archiveListEl.innerHTML = "";
-  archives.forEach(arc => {
-    const div = document.createElement("div");
-    div.className = "panel";
-    div.innerHTML = `<strong>${arc.date}</strong> - ${arc.transactions.length} Einträge`;
-    archiveListEl.appendChild(div);
-  });
-}
-
-function updateSavedAmount() {
-  const spent = transactions.reduce((sum, tx) => sum + tx.amount, 0);
-  savedAmount = totalBudget - spent;
-  savedAmountEl.textContent = `CHF ${savedAmount.toFixed(2)}`;
-}
-
-// ==========================
-// Zitate
-// ==========================
-function showQuote() {
-  const today = new Date();
-  const quote = quotes[today.getDate() % quotes.length];
-  quoteEl.innerHTML = `<span style="color: transparent; background: var(--accent); -webkit-background-clip: text;">“</span>${quote}<span style="color: transparent; background: var(--accent); -webkit-background-clip: text;">”</span>`;
-}
-
-// ==========================
-// Theme-Wechsel
-// ==========================
-document.querySelectorAll("[data-theme-select]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    currentTheme = btn.dataset.themeSelect;
-    document.body.className = `theme-${currentTheme}`;
-    saveToStorage();
-    showQuote();
-  });
+  function renderArchive() {
+    archiveList.innerHTML = "";
+    archives.forEach(a => {
+      const el = document.createElement("div");
+      el.className = "panel";
+      el.innerHTML = `<strong>${a.date}</strong> – Total: CHF ${a.total.toFixed(2)}`;
+      archiveList.appendChild(el);
+    });
+  }
+  renderArchive();
 });
-
-// ==========================
-// Tabs umschalten
-// ==========================
-function switchTab(tabId) {
-  document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
-  document.getElementById(`tab-${tabId}`).classList.add("active");
-}
-
-// ==========================
-// Modal-Helfer
-// ==========================
-function openModal(modal) {
-  modal.setAttribute("aria-hidden", "false");
-}
-function closeModal(modal) {
-  modal.setAttribute("aria-hidden", "true");
-}
-
-// ==========================
-// Storage
-// ==========================
-function saveToStorage() {
-  localStorage.setItem("budgetData", JSON.stringify({
-    userName, totalBudget, transactions, categories, payday, savedAmount, archives, currentTheme
-  }));
-}
-
-function loadFromStorage() {
-  const data = JSON.parse(localStorage.getItem("budgetData") || "{}");
-  userName = data.userName || "";
-  totalBudget = data.totalBudget || 0;
-  transactions = data.transactions || [];
-  categories = data.categories || [];
-  payday = data.payday || null;
-  savedAmount = data.savedAmount || 0;
-  archives = data.archives || [];
-  currentTheme = data.currentTheme || "standard";
-  document.body.className = `theme-${currentTheme}`;
-}
-
-// ==========================
-// Header aktualisieren
-// ==========================
-function updateHeader() {
-  const now = new Date();
-  greetingEl.textContent = `Hallo ${userName}`;
-  monthTextEl.textContent = `${now.toLocaleString("de-DE", { month: "long" })} ${now.getFullYear()}`;
-  currentDateEl.textContent = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-}
