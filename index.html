@@ -1,215 +1,189 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Budget Planer</title>
-
-  <!-- Schriftart -->
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800;900&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- Chart.js (Diagramme) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-  <!-- docx (Word-Export) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.0.1/docx.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-  <!-- App -->
-  <script defer src="app.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Dein Budget</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.1/docx.min.js"></script>
 </head>
 <body class="theme-standard">
-  <!-- Hamburger-Menü-Button (oben, sicher mit Dynamic Island) -->
-  <button id="menuButton"
-          class="menu-button"
-          aria-label="Menü öffnen"
-          aria-controls="menuOverlay"
-          aria-expanded="false">
-    <span class="menu-icon" aria-hidden="true"></span>
-  </button>
 
-  <!-- Vollbild-Menü-Overlay mit vertikalen Tabs -->
-  <aside id="menuOverlay" class="menu-overlay" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="menu-backdrop" id="menuBackdrop"></div>
-    <div class="menu-sheet" role="menu" aria-label="Hauptmenü">
-      <header class="menu-header">
-        <h3>Menü</h3>
-        <button id="closeMenu" class="menu-close" aria-label="Menü schliessen">×</button>
-      </header>
-      <nav class="menu-list">
-        <button class="menu-item" data-tab="budget" role="menuitem" aria-controls="tab-budget">Budget</button>
-        <button class="menu-item" data-tab="list" role="menuitem" aria-controls="tab-list">Auflistung</button>
-        <button class="menu-item" data-tab="history" role="menuitem" aria-controls="tab-history">Verlauf</button>
-        <button class="menu-item" data-tab="saved" role="menuitem" aria-controls="tab-saved">Gespart</button>
-        <button class="menu-item" data-tab="categories" role="menuitem" aria-controls="tab-categories">Kategorien</button>
-        <button class="menu-item" data-tab="settings" role="menuitem" aria-controls="tab-settings">Einstellungen</button>
-        <button class="menu-item" data-tab="archive" role="menuitem" aria-controls="tab-archive">Archiv</button>
-      </nav>
-    </div>
-  </aside>
+  <!-- Safe Area Top Platzhalter -->
+  <div style="height: env(safe-area-inset-top); background: white;"></div>
 
-  <!-- Seitenkopf -->
-  <header class="panel header-panel" role="banner">
-    <div id="greeting" class="muted">Hallo –</div>
-    <h2 id="monthRange">
-      <span id="budgetWord" class="gradient-text">Dein Budget</span>
-      <span>für&nbsp;<span id="monthText">–</span></span>
-    </h2>
-    <div id="currentDate" class="muted">–</div>
-    <p id="quote" class="quote" aria-live="polite"></p>
+  <!-- Header -->
+  <header class="header-panel">
+    <h1 id="greeting" class="gradient-text">Hallo</h1>
+    <h2>Dein Budget für <span id="monthText"></span></h2>
+    <div id="currentDate" class="muted"></div>
+    <div id="quote" class="quote"></div>
   </header>
 
-  <!-- Hauptinhalt -->
-  <main class="main-content" id="appRoot" role="main">
-    <!-- TAB: Budget -->
-    <section id="tab-budget" class="tab active" role="region" aria-label="Budget">
+  <!-- Tabs -->
+  <main>
+    <!-- Budget Tab -->
+    <section class="tab active" id="tab-budget">
       <div class="panel">
-        <label for="totalBudget" class="muted">Gesamtbudget (CHF)</label>
+        <h3>Gesamtbudget festlegen</h3>
         <div class="input-row">
-          <input id="totalBudget" type="number" inputmode="decimal" min="0" step="0.05" placeholder="0.00" />
-          <button id="saveBudget" class="btn btn-primary" type="button">Speichern</button>
+          <input type="number" id="totalBudget" placeholder="CHF">
+          <button id="saveBudget" class="btn btn-primary">Speichern</button>
         </div>
-      </div>
-
-      <div class="panel">
-        <label for="txCategory" class="muted">Kategorie</label>
-        <select id="txCategory" aria-label="Kategorie auswählen"></select>
-
-        <label for="txDesc" class="muted">Beschreibung</label>
-        <input id="txDesc" type="text" maxlength="60" placeholder="z.B. Wocheneinkauf" />
-
-        <label for="txAmount" class="muted">Betrag (CHF)</label>
-        <input id="txAmount" type="number" inputmode="decimal" min="0" step="0.05" placeholder="0.00" />
-
-        <button id="addTx" class="btn btn-primary" type="button">Hinzufügen</button>
       </div>
 
       <div class="panel kpi-row">
-        <div class="kpi">
+        <div>
           <div class="kpi-label">Ausgegeben</div>
           <div id="spent" class="kpi-value">CHF 0.00</div>
         </div>
-        <div class="kpi">
-          <div class="kpi-label">Verbleibend</div>
-          <div id="remaining" class="kpi-value big">CHF 0.00</div>
+        <div>
+          <div class="kpi-label">Verfügbar</div>
+          <div id="remaining" class="kpi-value">CHF 0.00</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Ausgabe hinzufügen</h3>
+        <div class="input-row">
+          <select id="txCategory"></select>
+        </div>
+        <div class="input-row">
+          <input type="text" id="txDesc" placeholder="Beschreibung">
+        </div>
+        <div class="input-row">
+          <input type="number" id="txAmount" placeholder="CHF">
+        </div>
+        <button id="addTx" class="btn btn-primary">Hinzufügen</button>
+      </div>
+    </section>
+
+    <!-- Auflistung Tab (vorher Verlauf) -->
+    <section class="tab" id="tab-list">
+      <div class="panel">
+        <h3>Verlauf</h3>
+        <div id="historyList" class="list-panel"></div>
+        <div class="export-grid">
+          <button id="exportCSV" class="btn btn-primary">Export als CSV</button>
+          <button id="exportWord" class="btn btn-primary">Export als Word</button>
         </div>
       </div>
     </section>
 
-    <!-- TAB: Auflistung -->
-    <section id="tab-list" class="tab" role="region" aria-label="Auflistung">
-      <div id="transactionList" class="panel list-panel" aria-live="polite"></div>
-    </section>
-
-    <!-- TAB: Verlauf -->
-    <section id="tab-history" class="tab" role="region" aria-label="Verlauf">
+    <!-- Verlauf Tab (vorher Auflistung) -->
+    <section class="tab" id="tab-history">
       <div class="panel">
-        <canvas id="expenseChart" width="420" height="320" aria-label="Ausgaben-Diagramm" role="img"></canvas>
-      </div>
-      <div id="historyList" class="panel list-panel"></div>
-    </section>
-
-    <!-- TAB: Gespart -->
-    <section id="tab-saved" class="tab" role="region" aria-label="Gespart">
-      <div class="panel">
-        <h3>Gespart in dieser Periode</h3>
-        <p><strong id="savedAmount">CHF 0.00</strong></p>
-        <small class="muted">Periode richtet sich nach deinem Zahltag.</small>
+        <h3>Auflistung</h3>
+        <div id="transactionList" class="list-panel"></div>
       </div>
     </section>
 
-    <!-- TAB: Kategorien -->
-    <section id="tab-categories" class="tab" role="region" aria-label="Kategorien">
+    <!-- Archiv Tab -->
+    <section class="tab" id="tab-archive">
+      <div class="panel">
+        <h3>Archiv</h3>
+        <div id="archiveList" class="list-panel"></div>
+      </div>
+    </section>
+
+    <!-- Gespart Tab -->
+    <section class="tab" id="tab-saved">
+      <div class="panel">
+        <h3>Gespart</h3>
+        <div id="savedAmount" class="big">CHF 0.00</div>
+      </div>
+    </section>
+
+    <!-- Kategorien Tab -->
+    <section class="tab" id="tab-categories">
       <div class="panel">
         <h3>Kategorien verwalten</h3>
         <div class="input-row">
-          <input id="newCategoryName" type="text" maxlength="24" placeholder="Neue Kategorie (z.B. Essen)" />
-          <button id="addCategory" class="btn btn-primary" type="button">Hinzufügen</button>
+          <input type="text" id="newCategoryName" placeholder="Neue Kategorie">
+          <button id="addCategory" class="btn btn-primary">Hinzufügen</button>
         </div>
         <div id="categoriesList" class="chips"></div>
-        <small class="muted">Tipp: Tippe auf eine Kategorie, um sie umzubenennen. Langer Druck: löschen.</small>
       </div>
     </section>
 
-    <!-- TAB: Einstellungen -->
-    <section id="tab-settings" class="tab" role="region" aria-label="Einstellungen">
+    <!-- Einstellungen Tab -->
+    <section class="tab" id="tab-settings">
       <div class="panel">
         <h3>Farbschema wählen</h3>
-        <!-- Buttons zeigen ihre echten Farben, unabhängig vom aktuellen Theme -->
         <div class="theme-grid">
-          <button class="theme-btn theme-swatch-standard" data-theme-select="standard" type="button" title="Grün/gelb">Standard</button>
-          <button class="theme-btn theme-swatch-warm" data-theme-select="warm" type="button" title="Rot/orange">Warm</button>
-          <button class="theme-btn theme-swatch-kalt" data-theme-select="kalt" type="button" title="Blau/hellblau">Kalt</button>
-          <button class="theme-btn theme-swatch-fancy" data-theme-select="fancy" type="button" title="Sättigtes Mint/Türkis">Fancy</button>
-          <button class="theme-btn theme-swatch-special" data-theme-select="special" type="button" title="Violett/gelb">Special</button>
-          <button class="theme-btn theme-swatch-girly" data-theme-select="girly" type="button" title="Pink/violett">Girly</button>
+          <button class="theme-btn" data-theme-select="standard" style="background: linear-gradient(90deg, #f1c40f, #2ecc71);">Standard</button>
+          <button class="theme-btn" data-theme-select="warm" style="background: linear-gradient(90deg, #e74c3c, #e67e22);">Warm</button>
+          <button class="theme-btn" data-theme-select="kalt" style="background: linear-gradient(90deg, #3498db, #5dade2);">Kalt</button>
+          <button class="theme-btn" data-theme-select="fancy" style="background: linear-gradient(90deg, #2ecc71, #1abc9c);">Fancy</button>
+          <button class="theme-btn" data-theme-select="special" style="background: linear-gradient(90deg, #8e44ad, #f1c40f);">Special</button>
+          <button class="theme-btn" data-theme-select="girly" style="background: linear-gradient(90deg, #ff69b4, #8e44ad);">Girly</button>
         </div>
       </div>
-
       <div class="panel">
-        <h3>Exporte</h3>
-        <div class="export-grid">
-          <button id="exportWord" class="btn btn-primary" type="button">Verlauf als Word</button>
-          <button id="exportCSV" class="btn btn-primary" type="button">Verlauf als CSV</button>
-          <button id="exportChart" class="btn btn-primary" type="button">Diagramm als PNG</button>
-        </div>
-        <small class="muted">Es wird die aktuelle Periode exportiert (definiert durch deinen Zahltag).</small>
+        <h3>Diagramm Export</h3>
+        <button id="exportChart" class="btn btn-primary">Diagramm als PNG</button>
       </div>
-
-      <div class="panel">
-        <h3>Zahltag</h3>
-        <div class="input-row">
-          <input id="paydaySelectSettings" type="number" min="1" max="28" step="1" placeholder="1–28" />
-          <button id="savePaydaySettings" class="btn btn-primary" type="button">Speichern</button>
-        </div>
-        <small class="muted">Am Zahltag wird automatisch archiviert und das Budget zurückgesetzt.</small>
-      </div>
-    </section>
-
-    <!-- TAB: Archiv -->
-    <section id="tab-archive" class="tab" role="region" aria-label="Archiv">
-      <div id="archiveList" class="panel list-panel"></div>
     </section>
   </main>
 
-  <!-- Popups (Onboarding: Willkommen → Info → Kategorien-Hinweis → Zahltag) -->
-  <div id="welcomeModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+  <!-- Hamburger Menü -->
+  <button id="menuButton" class="hamburger-btn" aria-label="Menü öffnen" aria-controls="menuOverlay" aria-expanded="false">☰</button>
+  <div id="menuOverlay" class="menu-overlay" aria-hidden="true">
+    <div id="menuBackdrop" class="menu-backdrop"></div>
+    <div class="menu-content">
+      <button id="closeMenu" class="close-menu">×</button>
+      <button class="menu-item" data-tab="budget">Budget</button>
+      <button class="menu-item" data-tab="list">Verlauf</button>
+      <button class="menu-item" data-tab="history">Auflistung</button>
+      <button class="menu-item" data-tab="archive">Archiv</button>
+      <button class="menu-item" data-tab="saved">Gespart</button>
+      <button class="menu-item" data-tab="categories">Kategorien</button>
+      <button class="menu-item" data-tab="settings">Einstellungen</button>
+    </div>
+  </div>
+
+  <!-- Safe Area Bottom Platzhalter -->
+  <div style="height: env(safe-area-inset-bottom); background: white;"></div>
+
+  <!-- Popups -->
+  <div class="modal" id="welcomeModal" aria-hidden="true">
     <div class="modal-content">
-      <h3 id="welcomeTitle">Willkommen!</h3>
+      <h3>Willkommen</h3>
       <p>Wie heisst du?</p>
-      <input id="userName" type="text" maxlength="24" placeholder="Dein Name" />
-      <button id="saveName" class="btn btn-primary" type="button">Speichern</button>
+      <input type="text" id="userName">
+      <button id="saveName" class="btn btn-primary">Weiter</button>
     </div>
   </div>
 
-  <div id="infoModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+  <div class="modal" id="infoModal" aria-hidden="true">
     <div class="modal-content">
-      <h3 id="infoTitle">Kurzinfo</h3>
-      <p>Ich helfe dir dabei, Ausgaben zu erfassen, Kategorien zu ordnen und am Zahltag alles sauber zu archivieren. So behältst du den Überblick und sparst smarter.</p>
-      <button id="closeInfo" class="btn btn-primary" type="button">Weiter</button>
+      <h3>Info</h3>
+      <p>Ich helfe dir beim Planen und Verwalten deines Budgets.</p>
+      <button id="closeInfo" class="btn btn-primary">Weiter</button>
     </div>
   </div>
 
-  <div id="categoryInfoModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="catInfoTitle">
+  <div class="modal" id="categoryInfoModal" aria-hidden="true">
     <div class="modal-content">
-      <h3 id="catInfoTitle">Noch ein Schritt</h3>
-      <p>Lege zuerst deine eigenen Kategorien an. Danach kannst du im Reiter <strong>Budget</strong> Ausgaben hinzufügen.</p>
-      <button id="closeCategoryInfo" class="btn btn-primary" type="button">Weiter</button>
+      <h3>Kategorien</h3>
+      <p>Lege zuerst eigene Kategorien an, damit du sie beim Hinzufügen auswählen kannst.</p>
+      <button id="closeCategoryInfo" class="btn btn-primary">Weiter</button>
     </div>
   </div>
 
-  <div id="paydayModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="paydayTitle">
+  <div class="modal" id="paydayModal" aria-hidden="true">
     <div class="modal-content">
-      <h3 id="paydayTitle">Zahltag festlegen</h3>
-      <p>Wähle deinen monatlichen Zahltag (1–28). An diesem Tag wird automatisch archiviert.</p>
-      <input id="paydaySelect" type="number" min="1" max="28" step="1" placeholder="z.B. 20" />
-      <button id="savePayday" class="btn btn-primary" type="button">Speichern</button>
+      <h3>Zahltag</h3>
+      <p>Wähle deinen Zahltag (1–28)</p>
+      <select id="paydaySelect">
+        ${Array.from({ length: 28 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+      </select>
+      <button id="savePayday" class="btn btn-primary">Speichern</button>
     </div>
   </div>
 
-  <!-- Live-Region für kurze Statusmeldungen (Screenreader) -->
-  <div id="sr-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <script src="app.js"></script>
 </body>
 </html>
